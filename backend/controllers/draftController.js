@@ -1,147 +1,134 @@
-const draft = require("../models/draftModel");
-const { spinSlot } = require("../services/draftService");
-const { getFormation } = require("../services/formationService");
+const { spinPool } = require("../services/poolService");
 
-// simple reroll counter
-let rerolls = 3;
 
-/**
- * SET FORMATION
- */
-function setFormation(req, res) {
-    const { formation } = req.body;
+let draft = {};
 
-    const slots = getFormation(formation);
 
-    if (!slots) {
-        return res.status(400).json({
-            success: false,
-            message: "Invalid formation"
-        });
-    }
 
-    draft.formation = formation;
-    draft.slots = {};
-
-    slots.forEach(slot => {
-        draft.slots[slot] = null;
-    });
-
-    res.json({
-        success: true,
-        data: draft
-    });
-}
-
-/**
- * SPIN SLOT
- */
 function spin(req, res) {
-    const { slot } = req.body;
 
-    if (!slot) {
-        return res.status(400).json({
-            success: false,
-            message: "Slot is required"
-        });
-    }
+    const {
+        position,
+        mode
+    } = req.body;
 
-    const result = spinSlot(slot);
 
-    res.json(result);
-}
+    const result = spinPool(
+        position,
+        mode || "premier"
+    );
 
-/**
- * SELECT PLAYER INTO SLOT
- */
-function selectPlayer(req, res) {
-    const { slot, player } = req.body;
-
-    if (!slot || !player) {
-        return res.status(400).json({
-            success: false,
-            message: "Slot and player are required"
-        });
-    }
-
-    if (!draft.slots[slot]) {
-        return res.status(400).json({
-            success: false,
-            message: "Invalid slot. Make sure formation is set first."
-        });
-    }
-
-    if (draft.slots[slot] !== null) {
-        return res.status(400).json({
-            success: false,
-            message: "Slot already filled"
-        });
-    }
-
-    draft.slots[slot] = player;
-
-    // check completion
-    const allFilled = Object.values(draft.slots).every(p => p !== null);
-
-    if (allFilled) {
-        draft.completed = true;
-    }
 
     res.json({
-        success: true,
-        data: draft
-    });
-}
 
-/**
- * GET DRAFT STATE
- */
-function getDraft(req, res) {
-    res.json({
         success: true,
-        data: draft
-    });
-}
 
-/**
- * GET STATUS (frontend friendly)
- */
-function getStatus(req, res) {
-    res.json({
-        success: true,
         data: {
-            formation: draft.formation,
-            slots: draft.slots,
-            completed: draft.completed,
-            rerolls
+
+            position: result.position,
+
+            label:
+                `${result.player} (${result.team})`,
+
+            tier: result.tier
+
         }
+
     });
+
 }
 
-/**
- * RESET DRAFT
- */
-function resetDraft(req, res) {
-    draft.formation = null;
-    draft.slots = {};
-    draft.completed = false;
-    rerolls = 3;
+
+
+function selectPlayer(req, res) {
+
+    const {
+        position,
+        player
+    } = req.body;
+
+
+    draft[position] = player;
+
 
     res.json({
+
         success: true,
-        message: "Draft reset",
+
         data: draft
+
     });
+
 }
 
-/**
- * EXPORTS
- */
+
+
+function getDraft(req, res) {
+
+    res.json({
+
+        success: true,
+
+        data: draft
+
+    });
+
+}
+
+
+
+function resetDraft(req, res) {
+
+    draft = {};
+
+
+    res.json({
+
+        success: true,
+
+        message: "Draft reset"
+
+    });
+
+}
+
+
+
+function getRerolls(req, res) {
+
+    res.json({
+
+        success: true,
+
+        rerolls: 3
+
+    });
+
+}
+
+
+
+function useReroll(req, res) {
+
+    res.json({
+
+        success: true,
+
+        message: "Reroll used"
+
+    });
+
+}
+
+
+
 module.exports = {
-    setFormation,
+
     spin,
     selectPlayer,
     getDraft,
-    getStatus,
-    resetDraft
+    resetDraft,
+    getRerolls,
+    useReroll
+
 };
