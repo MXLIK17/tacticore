@@ -116,6 +116,7 @@ function App() {
         const data = await response.json();
 
 
+        console.log("Spin Response:", data);
         setSpinResult(data.data);
 
 
