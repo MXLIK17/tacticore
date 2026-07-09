@@ -402,6 +402,127 @@ const premierLeaguePools = {
 
     ]
 
+},
+CM: {
+
+    elite: [
+
+        {
+            team: "Manchester United 2008",
+            players: [
+                "Paul Scholes",
+                "Michael Carrick",
+                "Ryan Giggs"
+            ]
+        },
+
+        {
+            team: "Arsenal Invincibles 2004",
+            players: [
+                "Patrick Vieira",
+                "Cesc Fabregas",
+                "Gilberto Silva"
+            ]
+        },
+
+        {
+            team: "Chelsea 2005",
+            players: [
+                "Frank Lampard",
+                "Claude Makelele",
+                "Michael Essien"
+            ]
+        },
+
+        {
+            team: "Liverpool 2019",
+            players: [
+                "Jordan Henderson",
+                "Fabinho",
+                "Georginio Wijnaldum"
+            ]
+        },
+
+        {
+            team: "Manchester City 2023",
+            players: [
+                "Kevin De Bruyne",
+                "Rodri",
+                "Bernardo Silva"
+            ]
+        }
+
+    ],
+
+
+    strong: [
+
+        {
+            team: "Tottenham 2017",
+            players: [
+                "Christian Eriksen",
+                "Mousa Dembele",
+                "Victor Wanyama"
+            ]
+        },
+
+        {
+            team: "Leicester City 2016",
+            players: [
+                "Danny Drinkwater",
+                "N'Golo Kante"
+            ]
+        },
+
+        {
+            team: "Southampton 2016",
+            players: [
+                "James Ward-Prowse",
+                "Oriol Romeu"
+            ]
+        },
+
+        {
+            team: "Newcastle United 1996",
+            players: [
+                "David Ginola",
+                "Rob Lee"
+            ]
+        }
+
+    ],
+
+
+       average: [
+
+        {
+            team: "Everton 2016",
+            players: [
+                "Ross Barkley",
+                "Gareth Barry"
+            ]
+        },
+
+        {
+            team: "West Ham 2018",
+            players: [
+                "Mark Noble",
+                "Declan Rice"
+            ]
+        },
+
+        {
+            team: "Aston Villa 2013",
+            players: [
+                "Fabian Delph",
+                "Ashley Westwood"
+            ]
+        }
+
+    ]
+
 }
-}
+
+};
+
 module.exports = premierLeaguePools;
