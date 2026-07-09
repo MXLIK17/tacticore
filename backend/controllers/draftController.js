@@ -7,10 +7,12 @@ let draft = {};
 
 function spin(req, res) {
 
+
     const {
         position,
         mode
     } = req.body;
+
 
 
     const result = spinPool(
@@ -19,22 +21,15 @@ function spin(req, res) {
     );
 
 
+
     res.json({
 
-        success: true,
+        success:true,
 
-        data: {
-
-            position: result.position,
-
-            label:
-                `${result.player} (${result.team})`,
-
-            tier: result.tier
-
-        }
+        data:result
 
     });
+
 
 }
 

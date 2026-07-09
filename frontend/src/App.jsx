@@ -25,108 +25,186 @@ function App() {
     ];
 
 
+
     const layout = {
-        GK: { top: "85%", left: "50%" },
 
-        CB1: { top: "65%", left: "35%" },
-        CB2: { top: "65%", left: "65%" },
+        GK: {
+            top: "85%",
+            left: "50%"
+        },
 
-        LB: { top: "70%", left: "15%" },
-        RB: { top: "70%", left: "85%" },
+        CB1: {
+            top: "65%",
+            left: "35%"
+        },
 
-        CM1: { top: "50%", left: "35%" },
-        CM2: { top: "50%", left: "50%" },
-        CM3: { top: "50%", left: "65%" },
+        CB2: {
+            top: "65%",
+            left: "65%"
+        },
 
-        FW1: { top: "30%", left: "35%" },
-        FW2: { top: "30%", left: "65%" },
+        LB: {
+            top: "70%",
+            left: "15%"
+        },
 
-        ST: { top: "15%", left: "50%" }
+        RB: {
+            top: "70%",
+            left: "85%"
+        },
+
+        CM1: {
+            top: "50%",
+            left: "35%"
+        },
+
+        CM2: {
+            top: "50%",
+            left: "50%"
+        },
+
+        CM3: {
+            top: "50%",
+            left: "65%"
+        },
+
+        FW1: {
+            top: "30%",
+            left: "35%"
+        },
+
+        FW2: {
+            top: "30%",
+            left: "65%"
+        },
+
+        ST: {
+            top: "15%",
+            left: "50%"
+        }
+
     };
+
 
 
     async function handleSpin(position) {
 
         setLoading(true);
 
+
         const response = await fetch(
             `${API}/api/draft/spin`,
             {
+
                 method: "POST",
+
                 headers: {
                     "Content-Type": "application/json"
                 },
+
                 body: JSON.stringify({
+
                     position: position,
                     mode: mode
+
                 })
+
             }
         );
 
 
         const data = await response.json();
 
+
         setSpinResult(data.data);
 
+
         setLoading(false);
+
     }
+
 
 
 
     async function handleSelect(position, player) {
 
+
         await fetch(
             `${API}/api/draft/select`,
             {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
+
+                method:"POST",
+
+                headers:{
+                    "Content-Type":"application/json"
                 },
-                body: JSON.stringify({
-                    position: position,
-                    player: player
+
+                body:JSON.stringify({
+
+                    position:position,
+
+                    player:player
+
                 })
+
             }
         );
 
 
+
         setDraft({
+
             ...draft,
+
             [position]: player
+
         });
 
 
+
         setSpinResult(null);
+
     }
+
 
 
 
     return (
 
-        <div style={{ padding: 20 }}>
+        <div style={{
+            padding:20,
+            fontFamily:"Arial"
+        }}>
+
 
             <h1>
                 ⚽ TactiCore Draft
             </h1>
 
 
+
             <h2>
-                Select Mode
+                Select Tournament
             </h2>
+
 
 
             <button
                 onClick={() => setMode("premier")}
             >
-                Premier League
+                🏴 Premier League
             </button>
 
 
+
             <button
+                style={{
+                    marginLeft:10
+                }}
+
                 onClick={() => setMode("worldcup")}
-                style={{ marginLeft: 10 }}
             >
-                World Cup
+                🌎 World Cup
             </button>
 
 
@@ -137,60 +215,110 @@ function App() {
 
 
 
+
+
+            {/* PITCH */}
+
             <div
+
                 style={{
-                    position: "relative",
-                    height: "600px",
-                    width: "100%",
-                    background: "green",
-                    marginTop: 20
+
+                    position:"relative",
+
+                    height:600,
+
+                    width:"100%",
+
+                    background:"green",
+
+                    border:"2px solid black",
+
+                    marginTop:20
+
                 }}
+
             >
 
+
                 {
-                    positions.map((pos) => (
+                    positions.map((position)=>(
+
 
                         <div
-                            key={pos}
+
+                            key={position}
+
                             style={{
-                                position: "absolute",
-                                ...layout[pos],
-                                transform: "translate(-50%, -50%)"
+
+                                position:"absolute",
+
+                                ...layout[position],
+
+                                transform:
+                                "translate(-50%,-50%)"
+
                             }}
+
                         >
 
+
+
                             <div
+
                                 style={{
-                                    background: "white",
-                                    padding: 10,
-                                    borderRadius: 10,
-                                    textAlign: "center",
-                                    width: 100
+
+                                    background:"white",
+
+                                    padding:10,
+
+                                    borderRadius:10,
+
+                                    width:110,
+
+                                    textAlign:"center"
+
                                 }}
+
                             >
 
+
+
                                 <b>
-                                    {pos}
+                                    {position}
                                 </b>
 
 
+
+
                                 {
-                                    draft[pos] ? (
 
-                                        <p>
-                                            {draft[pos].name}
-                                        </p>
+                                draft[position]
 
-                                    ) : (
+                                ?
 
-                                        <button
-                                            onClick={() => handleSpin(pos)}
-                                        >
-                                            Spin
-                                        </button>
+                                <p>
+                                    {draft[position].name}
+                                </p>
 
-                                    )
+
+                                :
+
+
+                                <button
+
+                                    onClick={() =>
+                                        handleSpin(position)
+                                    }
+
+                                >
+
+                                    Spin
+
+                                </button>
+
+
                                 }
+
 
 
                             </div>
@@ -198,58 +326,143 @@ function App() {
 
                         </div>
 
+
                     ))
                 }
+
 
 
             </div>
 
 
 
+
+
+
+
+            {/* RESULT */}
+
+            <div style={{
+                marginTop:30
+            }}>
+
+
             <h2>
-                Spin Result
+                🎲 Spin Result
             </h2>
+
 
 
             {
                 loading &&
+
                 <p>
                     Spinning...
                 </p>
+
             }
+
+
 
 
             {
                 spinResult &&
 
-                <div>
+
+                <div
+
+                    style={{
+
+                        border:"1px solid gray",
+
+                        padding:20,
+
+                        borderRadius:10
+
+                    }}
+
+                >
+
+
+                    <h2>
+
+                        {spinResult.tier}
+
+                    </h2>
+
+
 
                     <h3>
-                        {spinResult.tier}
+
+                        {spinResult.team}
+
                     </h3>
 
 
+
                     <p>
-                        {spinResult.label}
+                        Choose your player:
                     </p>
 
 
-                    <button
-                        onClick={() =>
-                            handleSelect(
-                                spinResult.position,
-                                {
-                                    name: spinResult.label
-                                }
-                            )
-                        }
-                    >
-                        Select
-                    </button>
+
+                    {
+
+                    spinResult.players.map((player)=>(
+
+
+                        <button
+
+                            key={player}
+
+                            style={{
+
+                                display:"block",
+
+                                margin:5,
+
+                                padding:8
+
+                            }}
+
+
+                            onClick={() =>
+
+                                handleSelect(
+
+                                    spinResult.position,
+
+                                    {
+                                        name:player
+                                    }
+
+                                )
+
+                            }
+
+
+                        >
+
+                            {player}
+
+                        </button>
+
+
+                    ))
+
+                    }
+
 
 
                 </div>
+
+
             }
+
+
+
+            </div>
+
 
 
         </div>
