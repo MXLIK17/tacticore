@@ -1,33 +1,407 @@
 const premierLeaguePools = {
+
     GK: {
+
         elite: [
-            { team: "Manchester United 2008", players: ["Van der Sar"] },
-            { team: "Liverpool 2019", players: ["Alisson"] }
+
+            {
+                team: "Manchester United 2008",
+                players: [
+                    "Edwin van der Sar",
+                ]
+            },
+
+            {
+                team: "Liverpool 2019",
+                players: [
+                    "Alisson"
+                ]
+            },
+
+            {
+                team: "Chelsea 2005",
+                players: [
+                    "Petr Cech"
+                ]
+            },
+
+            {
+                team: "Arsenal Invincibles 2004",
+                players: [
+                    "Jens Lehmann"
+                ]
+            },
+
+            {
+                team: "Manchester City 2023",
+                players: [
+                    "Ederson"
+                ]
+            }
+
         ],
+
+
         strong: [
-            { team: "Chelsea 2012", players: ["Cech"] },
-            { team: "Arsenal 2006", players: ["Lehmann"] }
+
+            {
+                team: "Leicester City 2016",
+                players: [
+                    "Kasper Schmeichel"
+                ]
+            },
+
+            {
+                team: "Tottenham 2017",
+                players: [
+                    "Hugo Lloris"
+                ]
+            },
+
+            {
+                team: "Newcastle United 1996",
+                players: [
+                    "Shay Given"
+                ]
+            },
+
+            {
+                team: "Everton 2008",
+                players: [
+                    "Tim Howard"
+                ]
+            }
+
         ],
+
+
         average: [
-            { team: "Everton 2016", players: ["Pickford"] },
-            { team: "West Ham 2018", players: ["Fabianski"] }
+
+            {
+                team: "West Ham 2018",
+                players: [
+                    "Lukasz Fabianski"
+                ]
+            },
+
+            {
+                team: "Southampton 2016",
+                players: [
+                    "Fraser Forster"
+                ]
+            },
+
+            {
+                team: "Aston Villa 2013",
+                players: [
+                    "Brad Guzan"
+                ]
+            }
+
         ]
+
     },
 
-    CB: {
-        elite: [
-            { team: "Man United 2008", players: ["Ferdinand", "Vidic"] },
-            { team: "Arsenal Invincibles 2004", players: ["Campbell", "Toure"] }
-        ],
-        strong: [
-            { team: "Chelsea 2015", players: ["Cahill", "Terry"] },
-            { team: "Liverpool 2014", players: ["Skrtel", "Agger"] }
-        ],
-        average: [
-            { team: "Aston Villa 2013", players: ["Clark", "Okore"] },
-            { team: "Southampton 2016", players: ["Fonte", "van Dijk early"] }
-        ]
-    }
-};
 
+    CB: {
+
+        elite: [
+
+            {
+                team: "Manchester United 2008",
+                players: [
+                    "Rio Ferdinand",
+                    "Nemanja Vidic",
+                    "Wes Brown"
+                ]
+            },
+
+            {
+                team: "Arsenal Invincibles 2004",
+                players: [
+                    "Sol Campbell",
+                    "Kolo Toure",
+                    "Martin Keown"
+                ]
+            },
+
+            {
+                team: "Chelsea 2005",
+                players: [
+                    "John Terry",
+                    "Ricardo Carvalho",
+                    "William Gallas"
+                ]
+            },
+
+            {
+                team: "Liverpool 2019",
+                players: [
+                    "Virgil van Dijk",
+                    "Joe Gomez",
+                    "Joel Matip"
+                ]
+            },
+
+            {
+                team: "Manchester City 2023",
+                players: [
+                    "Ruben Dias",
+                    "John Stones",
+                    "Nathan Ake"
+                ]
+            }
+
+        ],
+
+
+        strong: [
+
+            {
+                team: "Chelsea 2012",
+                players: [
+                    "John Terry",
+                    "Gary Cahill",
+                    "David Luiz"
+                ]
+            },
+
+            {
+                team: "Tottenham 2017",
+                players: [
+                    "Jan Vertonghen",
+                    "Toby Alderweireld",
+                    "Eric Dier"
+                ]
+            },
+
+            {
+                team: "Leicester City 2016",
+                players: [
+                    "Wes Morgan",
+                    "Robert Huth"
+                ]
+            },
+
+            {
+                team: "Southampton 2016",
+                players: [
+                    "Jose Fonte",
+                    "Virgil van Dijk"
+                ]
+            }
+
+        ],
+
+
+        average: [
+
+            {
+                team: "Everton 2016",
+                players: [
+                    "Ashley Williams",
+                    "Phil Jagielka"
+                ]
+            },
+
+            {
+                team: "West Ham 2018",
+                players: [
+                    "Winston Reid",
+                    "Angelo Ogbonna"
+                ]
+            },
+
+            {
+                team: "Aston Villa 2013",
+                players: [
+                    "Ron Vlaar",
+                    "Ciaran Clark"
+                ]
+            }
+
+        ]
+
+    },
+
+    LB: {
+
+        elite: [
+
+            {
+                team: "Manchester United 2008",
+                players: [
+                    "Patrice Evra"
+                ]
+            },
+
+            {
+                team: "Arsenal Invincibles 2004",
+                players: [
+                    "Ashley Cole"
+                ]
+            },
+
+            {
+                team: "Chelsea 2005",
+                players: [
+                    "Ashley Cole"
+                ]
+            },
+
+            {
+                team: "Liverpool 2019",
+                players: [
+                    "Andy Robertson"
+                ]
+            },
+
+            {
+                team: "Manchester City 2023",
+                players: [
+                    "Nathan Ake",
+                    "Joao Cancelo"
+                ]
+            }
+
+        ],
+
+
+        strong: [
+
+            {
+                team: "Tottenham 2017",
+                players: [
+                    "Danny Rose"
+                ]
+            },
+
+            {
+                team: "Leicester City 2016",
+                players: [
+                    "Christian Fuchs"
+                ]
+            },
+
+            {
+                team: "Southampton 2016",
+                players: [
+                    "Ryan Bertrand"
+                ]
+            }
+
+        ],
+
+
+        average: [
+
+            {
+                team: "West Ham 2018",
+                players: [
+                    "Aaron Cresswell"
+                ]
+            },
+
+            {
+                team: "Everton 2016",
+                players: [
+                    "Leighton Baines"
+                ]
+            }
+
+        ]
+
+    },
+
+    RB: {
+
+    elite: [
+
+        {
+            team: "Manchester United 2008",
+            players: [
+                "Gary Neville",
+                "Wes Brown"
+            ]
+        },
+
+        {
+            team: "Arsenal Invincibles 2004",
+            players: [
+                "Lauren"
+            ]
+        },
+
+        {
+            team: "Chelsea 2005",
+            players: [
+                "Paulo Ferreira",
+                "Branislav Ivanovic"
+            ]
+        },
+
+        {
+            team: "Liverpool 2019",
+            players: [
+                "Trent Alexander-Arnold"
+            ]
+        },
+
+        {
+            team: "Manchester City 2023",
+            players: [
+                "Kyle Walker"
+            ]
+        }
+
+    ],
+
+
+    strong: [
+
+        {
+            team: "Tottenham 2017",
+            players: [
+                "Kyle Walker",
+                "Kieran Trippier"
+            ]
+        },
+
+        {
+            team: "Leicester City 2016",
+            players: [
+                "Danny Simpson"
+            ]
+        },
+
+        {
+            team: "Southampton 2016",
+            players: [
+                "Cedric Soares"
+            ]
+        }
+
+    ],
+
+
+    average: [
+
+        {
+            team: "West Ham 2018",
+            players: [
+                "Ryan Fredericks"
+            ]
+        },
+
+        {
+            team: "Everton 2016",
+            players: [
+                "Seamus Coleman"
+            ]
+        }
+
+    ]
+
+}
+}
 module.exports = premierLeaguePools;
