@@ -521,6 +521,240 @@ CM: {
 
     ]
 
+},
+
+FW: {
+
+    elite: [
+
+        {
+            team: "Manchester United 2008",
+            players: [
+                "Cristiano Ronaldo",
+                "Wayne Rooney",
+                "Carlos Tevez"
+            ]
+        },
+
+        {
+            team: "Arsenal Invincibles 2004",
+            players: [
+                "Thierry Henry",
+                "Robert Pires",
+                "Freddie Ljungberg",
+                "Dennis Bergkamp"
+            ]
+        },
+
+        {
+            team: "Chelsea 2005",
+            players: [
+                "Didier Drogba",
+                "Arjen Robben",
+                "Joe Cole",
+                "Damien Duff"
+            ]
+        },
+
+        {
+            team: "Liverpool 2019",
+            players: [
+                "Mohamed Salah",
+                "Sadio Mane",
+                "Roberto Firmino",
+                "Divock Origi"
+            ]
+        },
+
+        {
+            team: "Manchester City 2023",
+            players: [
+                "Erling Haaland",
+                "Phil Foden",
+                "Jack Grealish",
+                "Bernardo Silva"
+            ]
+        }
+
+    ],
+
+
+    strong: [
+
+        {
+            team: "Tottenham 2017",
+            players: [
+                "Harry Kane",
+                "Son Heung-min",
+                "Dele Alli",
+                "Christian Eriksen"
+            ]
+        },
+
+        {
+            team: "Leicester City 2016",
+            players: [
+                "Jamie Vardy",
+                "Riyad Mahrez",
+                "Shinji Okazaki"
+            ]
+        },
+
+        {
+            team: "Newcastle United 1996",
+            players: [
+                "Alan Shearer",
+                "Les Ferdinand",
+                "David Ginola"
+            ]
+        },
+
+        {
+            team: "Southampton 2016",
+            players: [
+                "Sadio Mane",
+                "Shane Long",
+                "Graziano Pelle"
+            ]
+        }
+
+    ],
+
+
+    average: [
+
+        {
+            team: "Everton 2016",
+            players: [
+                "Romelu Lukaku",
+                "Gerard Deulofeu"
+            ]
+        },
+
+        {
+            team: "West Ham 2018",
+            players: [
+                "Marko Arnautovic",
+                "Javier Hernandez"
+            ]
+        },
+
+        {
+            team: "Aston Villa 2013",
+            players: [
+                "Christian Benteke",
+                "Andreas Weimann"
+            ]
+        }
+
+    ]
+
+},
+
+
+
+ST: {
+
+    elite: [
+
+        {
+            team: "Manchester United 2008",
+            players: [
+                "Wayne Rooney",
+                "Carlos Tevez"
+            ]
+        },
+
+        {
+            team: "Arsenal Invincibles 2004",
+            players: [
+                "Thierry Henry",
+                "Dennis Bergkamp"
+            ]
+        },
+
+        {
+            team: "Chelsea 2005",
+            players: [
+                "Didier Drogba"
+            ]
+        },
+
+        {
+            team: "Liverpool 2019",
+            players: [
+                "Roberto Firmino"
+            ]
+        },
+
+        {
+            team: "Manchester City 2023",
+            players: [
+                "Erling Haaland"
+            ]
+        }
+
+    ],
+
+
+    strong: [
+
+        {
+            team: "Tottenham 2017",
+            players: [
+                "Harry Kane"
+            ]
+        },
+
+        {
+            team: "Leicester City 2016",
+            players: [
+                "Jamie Vardy"
+            ]
+        },
+
+        {
+            team: "Newcastle United 1996",
+            players: [
+                "Alan Shearer"
+            ]
+        },
+
+        {
+            team: "Southampton 2016",
+            players: [
+                "Graziano Pelle"
+            ]
+        }
+
+    ],
+
+
+    average: [
+
+        {
+            team: "Everton 2016",
+            players: [
+                "Romelu Lukaku"
+            ]
+        },
+
+        {
+            team: "West Ham 2018",
+            players: [
+                "Javier Hernandez"
+            ]
+        },
+
+        {
+            team: "Aston Villa 2013",
+            players: [
+                "Christian Benteke"
+            ]
+        }
+
+    ]
+
 }
 
 };
