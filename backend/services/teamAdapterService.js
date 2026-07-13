@@ -1,36 +1,187 @@
-const draft = require("../models/draftModel");
+const players = require("../data/players");
 
-/**
- * Converts draft slots into tournament-ready team format
- */
-function buildFinalTeam() {
-    const slots = draft.slots;
 
-    const players = Object.values(slots).filter(p => p !== null);
 
-    return {
-        name: "User Team",
-        slots: slots,
-        players: players
-    };
+function findPlayer(playerName) {
+
+    return players.find(
+        player => player.name === playerName
+    );
+
 }
 
-/**
- * Ensures every team (user or AI) has valid structure
- */
-function normalizeTeam(team) {
-    if (!team.slots) {
-        throw new Error("Invalid team format: missing slots");
+
+
+function getPlayerRating(playerName) {
+
+    const player = findPlayer(playerName);
+
+
+    // fallback if player is not added yet
+    if (!player) {
+
+        return {
+
+            attack:75,
+            midfield:75,
+            defense:75,
+            goalkeeper:75
+
+        };
+
     }
 
+
+
     return {
-        name: team.name || "Unknown Team",
-        slots: team.slots,
-        players: Object.values(team.slots).filter(p => p !== null)
+
+        attack:
+            Math.round(
+                (player.shooting + player.speed) / 2
+            ),
+
+
+        midfield:
+            player.passing,
+
+
+        defense:
+            player.defense,
+
+
+        goalkeeper:
+            player.position === "GK"
+            ? player.shooting
+            : 0
+
     };
+
 }
 
+
+
+
+function calculateTeamRating(draft) {
+
+
+    let attack = [];
+    let midfield = [];
+    let defense = [];
+    let goalkeeper = [];
+
+
+
+    Object.values(draft).forEach(player => {
+
+
+        const rating = getPlayerRating(player.name);
+
+
+
+        if (
+            player.position === "FW1" ||
+            player.position === "FW2" ||
+            player.position === "ST"
+        ) {
+
+            attack.push(rating.attack);
+
+        }
+
+
+        else if (
+            player.position === "CM1" ||
+            player.position === "CM2" ||
+            player.position === "CM3"
+        ) {
+
+            midfield.push(rating.midfield);
+
+        }
+
+
+        else if (
+            player.position === "CB1" ||
+            player.position === "CB2" ||
+            player.position === "LB" ||
+            player.position === "RB"
+        ) {
+
+            defense.push(rating.defense);
+
+        }
+
+
+        else if (
+            player.position === "GK"
+        ) {
+
+            goalkeeper.push(rating.goalkeeper);
+
+        }
+
+
+    });
+
+
+
+    return {
+
+        attack:
+            average(attack),
+
+
+        midfield:
+            average(midfield),
+
+
+        defense:
+            average(defense),
+
+
+        goalkeeper:
+            average(goalkeeper)
+
+    };
+
+}
+
+
+
+
+function average(array) {
+
+
+    if(array.length === 0)
+        return 75;
+
+
+    return Math.round(
+
+        array.reduce(
+            (sum,value)=>sum+value,
+            0
+        )
+        /
+        array.length
+
+    );
+
+}
+
+
+
+
 module.exports = {
-    buildFinalTeam,
-    normalizeTeam
+
+    calculateTeamRating
+
+};
+
+
+
+module.exports = {
+
+    calculateTeamRating
+
 };
