@@ -1,56 +1,220 @@
-function calculateTeamStrength(team) {
-    if (!team || !team.players || team.players.length === 0) {
-        return 50; // fallback baseline strength
+const {
+    random
+}=Math;
+
+function selectScorer(team){
+
+
+    const attackers =
+        team.players.filter(
+            p =>
+            p.position === "FW" ||
+            p.position === "ST"
+        );
+
+
+    if(!attackers.length)
+        return null;
+
+
+
+    return attackers[
+        Math.floor(
+            random()
+            *
+            attackers.length
+        )
+    ];
+
+}
+
+function clamp(value,min,max){
+
+    return Math.max(
+        min,
+        Math.min(
+            value,
+            max
+        )
+    );
+
+}
+
+
+
+function calculateExpectedGoals(
+    team,
+    opponent
+){
+
+
+    const attackDifference =
+        team.attack -
+        opponent.defense;
+
+
+
+    const midfieldControl =
+        (
+            team.midfield -
+            opponent.midfield
+        )
+        *
+        0.15;
+
+
+
+    let xG =
+        1.2
+        +
+        attackDifference * 0.08
+        +
+        midfieldControl;
+
+
+
+    const goalkeeperEffect =
+        (
+            opponent.goalkeeper - 85
+        )
+        *
+        0.03;
+
+
+
+    xG -= goalkeeperEffect;
+
+
+
+    return clamp(
+        xG,
+        0.1,
+        4
+    );
+
+}
+
+
+
+
+function generateGoals(xG){
+
+
+    let goals = 0;
+
+
+    for(
+        let i=0;
+        i<6;
+        i++
+    ){
+
+        if(
+            Math.random()
+            <
+            xG / 6
+        ){
+
+            goals++;
+
+        }
+
     }
 
-    let total = 0;
 
-    team.players.forEach(player => {
-        const speed = player.speed ?? 50;
-        const shooting = player.shooting ?? 50;
-        const passing = player.passing ?? 50;
-        const defense = player.defense ?? 50;
-        const stamina = player.stamina ?? 50;
+    return goals;
 
-        const avg = (speed + shooting + passing + defense + stamina) / 5;
-        total += avg;
-    });
-
-    return total / team.players.length;
 }
 
-/**
- * Simulates a single football match
- */
-function simulateMatch(homeTeam, awayTeam) {
-    const homeStrength = calculateTeamStrength(homeTeam);
-    const awayStrength = calculateTeamStrength(awayTeam);
 
-    // small home advantage
-    const homeBoost = 5;
 
-    const homeScore = Math.max(
-        0,
-        Math.round((homeStrength + homeBoost) / 25 + Math.random() * 3)
-    );
 
-    const awayScore = Math.max(
-        0,
-        Math.round(awayStrength / 25 + Math.random() * 3)
-    );
+function simulateMatch(
+    homeTeam,
+    awayTeam
+){
 
-    let result = "draw";
-    if (homeScore > awayScore) result = "home";
-    else if (awayScore > homeScore) result = "away";
 
-    return {
-        homeScore,
-        awayScore,
-        result
-    };
+    const homeXG =
+        calculateExpectedGoals(
+            homeTeam,
+            awayTeam
+        );
+
+
+
+    const awayXG =
+        calculateExpectedGoals(
+            awayTeam,
+            homeTeam
+        );
+
+
+
+    const homeGoals =
+        generateGoals(homeXG);
+
+
+
+    const awayGoals =
+        generateGoals(awayXG);
+
+
+
+   return {
+
+    homeGoals,
+
+    awayGoals,
+
+
+    homeScorers:
+        Array.from(
+            {
+                length: homeGoals
+            },
+            () =>
+                selectScorer(homeTeam)
+        ),
+
+
+    awayScorers:
+        Array.from(
+            {
+                length: awayGoals
+            },
+            () =>
+                selectScorer(awayTeam)
+        ),
+
+
+    result:
+
+        homeGoals > awayGoals
+
+        ?
+        "HOME_WIN"
+
+        :
+
+        awayGoals > homeGoals
+
+        ?
+        "AWAY_WIN"
+
+        :
+
+        "DRAW"
+
+};
+
+
 }
+
+
 
 module.exports = {
-    calculateTeamStrength,
+
     simulateMatch
+
 };

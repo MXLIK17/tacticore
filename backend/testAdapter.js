@@ -3,29 +3,69 @@ const {
 } = require("./services/teamAdapterService");
 
 
-const team = {
 
-    ST:{
-        position:"ST",
-        name:"Ronaldo"
+const draft = {
+
+
+    GK:{
+        name:"Edwin van der Sar"
+    },
+
+
+    CB1:{
+        name:"Rio Ferdinand"
+    },
+
+
+    CB2:{
+        name:"Nemanja Vidic"
+    },
+
+
+    LB:{
+        name:"Ashley Cole"
+    },
+
+
+    RB:{
+        name:"Gary Neville"
     },
 
 
     CM1:{
-        position:"CM1",
-        name:"Xavi"
+        name:"Paul Scholes"
     },
 
 
-    GK:{
-        position:"GK",
-        name:"Neuer"
+    CM2:{
+        name:"Patrick Vieira"
+    },
+
+
+    CM3:{
+        name:"Kevin De Bruyne"
+    },
+
+
+    FW1:{
+        name:"Cristiano Ronaldo"
+    },
+
+
+    FW2:{
+        name:"Thierry Henry"
+    },
+
+
+    ST:{
+        name:"Sergio Aguero"
     }
+
 
 };
 
 
 
 console.log(
-    calculateTeamRating(team)
+    calculateTeamRating(draft)
 );

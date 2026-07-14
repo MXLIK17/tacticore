@@ -1,23 +1,23 @@
 const players = require("../data/players");
 
 
+// Find player in database
 
-function findPlayer(playerName) {
+function findPlayer(name) {
 
     return players.find(
-        player => player.name === playerName
+        player => player.name === name
     );
 
 }
 
 
 
-function getPlayerRating(playerName) {
+// Calculate individual player contribution
 
-    const player = findPlayer(playerName);
+function getPlayerRating(player) {
 
 
-    // fallback if player is not added yet
     if (!player) {
 
         return {
@@ -33,28 +33,145 @@ function getPlayerRating(playerName) {
 
 
 
-    return {
-
-        attack:
-            Math.round(
-                (player.shooting + player.speed) / 2
-            ),
+    switch(player.position) {
 
 
-        midfield:
-            player.passing,
+        case "GK":
+
+            return {
+
+                attack:10,
+                midfield:30,
+                defense:player.defending,
+                goalkeeper:
+                    average([
+                        player.handling,
+                        player.reflexes,
+                        player.positioning,
+                        player.diving
+                    ])
+
+            };
 
 
-        defense:
-            player.defense,
+
+        case "CB":
+
+            return {
+
+                attack:35,
+                midfield:60,
+                defense:
+                    average([
+                        player.defending,
+                        player.tackling,
+                        player.marking,
+                        player.positioning
+                    ]),
+                goalkeeper:0
+
+            };
 
 
-        goalkeeper:
-            player.position === "GK"
-            ? player.shooting
-            : 0
 
-    };
+        case "LB":
+        case "RB":
+
+            return {
+
+                attack:
+                    average([
+                        player.passing,
+                        player.dribbling,
+                        player.crossing || 70
+                    ]),
+
+                midfield:
+                    average([
+                        player.passing,
+                        player.stamina
+                    ]),
+
+                defense:
+                    average([
+                        player.defending,
+                        player.tackling,
+                        player.marking
+                    ]),
+
+                goalkeeper:0
+
+            };
+
+
+
+        case "CM":
+
+            return {
+
+                attack:
+                    average([
+                        player.shooting,
+                        player.creativity,
+                        player.vision
+                    ]),
+
+                midfield:
+                    average([
+                        player.passing,
+                        player.vision,
+                        player.creativity
+                    ]),
+
+                defense:
+                    average([
+                        player.defending,
+                        player.tackling || 60
+                    ]),
+
+                goalkeeper:0
+
+            };
+
+
+
+        case "FW":
+        case "ST":
+
+            return {
+
+                attack:
+                    average([
+                        player.shooting,
+                        player.finishing,
+                        player.dribbling
+                    ]),
+
+                midfield:
+                    average([
+                        player.passing,
+                        player.vision || 75
+                    ]),
+
+                defense:35,
+
+                goalkeeper:0
+
+            };
+
+
+        default:
+
+            return {
+
+                attack:75,
+                midfield:75,
+                defense:75,
+                goalkeeper:75
+
+            };
+
+    }
 
 }
 
@@ -64,61 +181,33 @@ function getPlayerRating(playerName) {
 function calculateTeamRating(draft) {
 
 
-    let attack = [];
-    let midfield = [];
-    let defense = [];
-    let goalkeeper = [];
+    let attack=[];
+    let midfield=[];
+    let defense=[];
+    let goalkeeper=[];
 
 
 
-    Object.values(draft).forEach(player => {
+    Object.values(draft).forEach(playerData=>{
 
 
-        const rating = getPlayerRating(player.name);
+        const player =
+            findPlayer(playerData.name);
 
 
 
-        if (
-            player.position === "FW1" ||
-            player.position === "FW2" ||
-            player.position === "ST"
-        ) {
-
-            attack.push(rating.attack);
-
-        }
+        const rating =
+            getPlayerRating(player);
 
 
-        else if (
-            player.position === "CM1" ||
-            player.position === "CM2" ||
-            player.position === "CM3"
-        ) {
 
-            midfield.push(rating.midfield);
+        attack.push(rating.attack);
 
-        }
+        midfield.push(rating.midfield);
 
+        defense.push(rating.defense);
 
-        else if (
-            player.position === "CB1" ||
-            player.position === "CB2" ||
-            player.position === "LB" ||
-            player.position === "RB"
-        ) {
-
-            defense.push(rating.defense);
-
-        }
-
-
-        else if (
-            player.position === "GK"
-        ) {
-
-            goalkeeper.push(rating.goalkeeper);
-
-        }
+        goalkeeper.push(rating.goalkeeper);
 
 
     });
@@ -127,20 +216,51 @@ function calculateTeamRating(draft) {
 
     return {
 
+
         attack:
-            average(attack),
+            Math.round(
+                average(attack)
+            ),
+
 
 
         midfield:
-            average(midfield),
+            Math.round(
+                average(midfield)
+            ),
+
 
 
         defense:
-            average(defense),
+            Math.round(
+                average(defense)
+            ),
+
 
 
         goalkeeper:
-            average(goalkeeper)
+            Math.round(
+                Math.max(
+                    ...goalkeeper
+                )
+            ),
+
+
+        overall:
+            Math.round(
+                (
+                    average(attack)
+                    +
+                    average(midfield)
+                    +
+                    average(defense)
+                    +
+                    Math.max(...goalkeeper)
+                )
+                /
+                4
+            )
+
 
     };
 
@@ -149,34 +269,23 @@ function calculateTeamRating(draft) {
 
 
 
-function average(array) {
+function average(array){
 
 
-    if(array.length === 0)
+    if(!array.length)
         return 75;
 
 
-    return Math.round(
+    return array.reduce(
+        (a,b)=>a+b,
+        0
+    )
+    /
+    array.length;
 
-        array.reduce(
-            (sum,value)=>sum+value,
-            0
-        )
-        /
-        array.length
-
-    );
 
 }
 
-
-
-
-module.exports = {
-
-    calculateTeamRating
-
-};
 
 
 
