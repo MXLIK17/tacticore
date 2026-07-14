@@ -29,7 +29,7 @@ function convertDraftPlayers(draft){
 
                 name: player.name,
 
-                position: player.position
+                position: player.position || "FW"
 
             };
 
@@ -223,10 +223,18 @@ function simulateSeason(myTeam){
 
 
 
-    return {
+return {
 
+
+    season:
+
+    {
 
         matchesPlayed:38,
+
+
+        record:
+            `${wins}-${draws}-${losses}`,
 
 
         wins,
@@ -236,21 +244,25 @@ function simulateSeason(myTeam){
         losses,
 
 
+        points:
+            points,
+
+
         goalsFor,
 
         goalsAgainst,
 
 
-        points,
+        goalDifference:
+            goalsFor - goalsAgainst
+
+    },
 
 
-        matches,
 
+    stats:
 
-
-        playerStats,
-
-
+    {
 
         topScorer:
             getTopScorer(
@@ -264,7 +276,12 @@ function simulateSeason(myTeam){
                 playerStats
             )
 
-    };
+    },
+
+
+    playerStats
+
+};
 
 
 }

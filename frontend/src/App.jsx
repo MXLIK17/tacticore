@@ -9,6 +9,9 @@ function App() {
     const [loading, setLoading] = useState(false);
     const [mode, setMode] = useState("premier");
 
+    const [seasonResult, setSeasonResult] = useState(null);
+    const [seasonLoading, setSeasonLoading] = useState(false);
+
 
     const positions = [
         "GK",
@@ -28,66 +31,35 @@ function App() {
 
     const layout = {
 
-        GK: {
-            top: "85%",
-            left: "50%"
-        },
+        GK:{ top:"85%", left:"50%" },
 
-        CB1: {
-            top: "65%",
-            left: "35%"
-        },
+        CB1:{ top:"65%", left:"35%" },
 
-        CB2: {
-            top: "65%",
-            left: "65%"
-        },
+        CB2:{ top:"65%", left:"65%" },
 
-        LB: {
-            top: "70%",
-            left: "15%"
-        },
+        LB:{ top:"70%", left:"15%" },
 
-        RB: {
-            top: "70%",
-            left: "85%"
-        },
+        RB:{ top:"70%", left:"85%" },
 
-        CM1: {
-            top: "50%",
-            left: "35%"
-        },
+        CM1:{ top:"50%", left:"35%" },
 
-        CM2: {
-            top: "50%",
-            left: "50%"
-        },
+        CM2:{ top:"50%", left:"50%" },
 
-        CM3: {
-            top: "50%",
-            left: "65%"
-        },
+        CM3:{ top:"50%", left:"65%" },
 
-        FW1: {
-            top: "30%",
-            left: "35%"
-        },
+        FW1:{ top:"30%", left:"35%" },
 
-        FW2: {
-            top: "30%",
-            left: "65%"
-        },
+        FW2:{ top:"30%", left:"65%" },
 
-        ST: {
-            top: "15%",
-            left: "50%"
-        }
+        ST:{ top:"15%", left:"50%" }
 
     };
 
 
 
+
     async function handleSpin(position) {
+
 
         setLoading(true);
 
@@ -96,16 +68,17 @@ function App() {
             `${API}/api/draft/spin`,
             {
 
-                method: "POST",
+                method:"POST",
 
-                headers: {
-                    "Content-Type": "application/json"
+                headers:{
+                    "Content-Type":"application/json"
                 },
 
-                body: JSON.stringify({
+                body:JSON.stringify({
 
-                    position: position,
-                    mode: mode
+                    position:position,
+
+                    mode:mode
 
                 })
 
@@ -117,6 +90,8 @@ function App() {
 
 
         console.log("Spin Response:", data);
+
+
         setSpinResult(data.data);
 
 
@@ -157,7 +132,7 @@ function App() {
 
             ...draft,
 
-            [position]: player
+            [position]:player
 
         });
 
@@ -170,12 +145,82 @@ function App() {
 
 
 
+    async function startSeason(){
+
+
+        setSeasonLoading(true);
+
+
+
+        const response =
+            await fetch(
+
+                `${API}/api/season/simulate`,
+
+                {
+
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+
+
+                    body:JSON.stringify({
+
+                        team:{
+
+                            name:"TactiCore FC",
+
+                            players:Object.values(draft)
+
+                        }
+
+                    })
+
+                }
+
+            );
+
+
+
+        const data =
+            await response.json();
+
+
+
+        console.log(
+            "Season Result:",
+            data
+        );
+
+
+        setSeasonResult(
+            data.data
+        );
+
+
+        setSeasonLoading(false);
+
+    }
+
+
+
+
+
     return (
 
-        <div style={{
+        <div
+
+        style={{
+
             padding:20,
+
             fontFamily:"Arial"
-        }}>
+
+        }}
+
+        >
 
 
             <h1>
@@ -191,22 +236,36 @@ function App() {
 
 
             <button
-                onClick={() => setMode("premier")}
+
+                onClick={() =>
+                    setMode("premier")
+                }
+
             >
+
                 🏴 Premier League
+
             </button>
+
 
 
 
             <button
+
                 style={{
                     marginLeft:10
                 }}
 
-                onClick={() => setMode("worldcup")}
+                onClick={() =>
+                    setMode("worldcup")
+                }
+
             >
+
                 🌎 World Cup
+
             </button>
+
 
 
 
@@ -219,6 +278,7 @@ function App() {
 
 
             {/* PITCH */}
+
 
             <div
 
@@ -242,93 +302,93 @@ function App() {
 
 
                 {
-                    positions.map((position)=>(
+
+                positions.map((position)=>(
+
+
+                    <div
+
+                        key={position}
+
+                        style={{
+
+                            position:"absolute",
+
+                            ...layout[position],
+
+                            transform:
+                            "translate(-50%,-50%)"
+
+                        }}
+
+                    >
+
 
 
                         <div
 
-                            key={position}
+                        style={{
 
-                            style={{
+                            background:"white",
 
-                                position:"absolute",
+                            padding:10,
 
-                                ...layout[position],
+                            borderRadius:10,
 
-                                transform:
-                                "translate(-50%,-50%)"
+                            width:110,
 
-                            }}
+                            textAlign:"center"
+
+                        }}
 
                         >
 
 
 
-                            <div
+                            <b>
+                                {position}
+                            </b>
 
-                                style={{
 
-                                    background:"white",
 
-                                    padding:10,
+                            {
 
-                                    borderRadius:10,
+                            draft[position]
 
-                                    width:110,
+                            ?
 
-                                    textAlign:"center"
+                            <p>
+                                {draft[position].name}
+                            </p>
 
-                                }}
+
+                            :
+
+                            <button
+
+                                onClick={() =>
+                                    handleSpin(position)
+                                }
 
                             >
 
+                                Spin
+
+                            </button>
 
 
-                                <b>
-                                    {position}
-                                </b>
+                            }
 
-
-
-
-                                {
-
-                                draft[position]
-
-                                ?
-
-                                <p>
-                                    {draft[position].name}
-                                </p>
-
-
-                                :
-
-
-                                <button
-
-                                    onClick={() =>
-                                        handleSpin(position)
-                                    }
-
-                                >
-
-                                    Spin
-
-                                </button>
-
-
-                                }
-
-
-
-                            </div>
 
 
                         </div>
 
 
-                    ))
+                    </div>
+
+
+                ))
+
                 }
 
 
@@ -339,13 +399,44 @@ function App() {
 
 
 
+            <button
+
+                onClick={startSeason}
+
+                style={{
+
+                    marginTop:20,
+
+                    padding:15,
+
+                    fontSize:18
+
+                }}
+
+            >
+
+                🏆 Start Premier League Season
+
+            </button>
 
 
-            {/* RESULT */}
 
-            <div style={{
+
+
+
+
+            {/* SPIN RESULT */}
+
+
+            <div
+
+            style={{
+
                 marginTop:30
-            }}>
+
+            }}
+
+            >
 
 
             <h2>
@@ -355,107 +446,106 @@ function App() {
 
 
             {
-                loading &&
 
-                <p>
-                    Spinning...
-                </p>
+            loading &&
+
+            <p>
+                Spinning...
+            </p>
 
             }
 
 
 
 
+
             {
-                spinResult &&
+
+            spinResult &&
 
 
-                <div
+            <div
+
+            style={{
+
+                border:"1px solid gray",
+
+                padding:20,
+
+                borderRadius:10
+
+            }}
+
+            >
+
+
+                <h2>
+                    {spinResult.tier}
+                </h2>
+
+
+                <h3>
+                    {spinResult.team}
+                </h3>
+
+
+                <p>
+                    Choose your player:
+                </p>
+
+
+
+
+                {
+
+                spinResult.players.map((player)=>(
+
+
+                    <button
+
+                    key={player}
 
                     style={{
 
-                        border:"1px solid gray",
+                        display:"block",
 
-                        padding:20,
+                        margin:5,
 
-                        borderRadius:10
+                        padding:8
 
                     }}
 
-                >
 
 
-                    <h2>
+                    onClick={() =>
 
-                        {spinResult.tier}
+                        handleSelect(
 
-                    </h2>
+                            spinResult.position,
 
-
-
-                    <h3>
-
-                        {spinResult.team}
-
-                    </h3>
-
-
-
-                    <p>
-                        Choose your player:
-                    </p>
-
-
-
-                    {
-
-                    spinResult.players.map((player)=>(
-
-
-                        <button
-
-                            key={player}
-
-                            style={{
-
-                                display:"block",
-
-                                margin:5,
-
-                                padding:8
-
-                            }}
-
-
-                            onClick={() =>
-
-                                handleSelect(
-
-                                    spinResult.position,
-
-                                    {
-                                        name:player
-                                    }
-
-                                )
-
+                            {
+                                name:player
                             }
 
-
-                        >
-
-                            {player}
-
-                        </button>
-
-
-                    ))
+                        )
 
                     }
 
 
+                    >
 
-                </div>
+                        {player}
+
+                    </button>
+
+
+                ))
+
+                }
+
+
+
+            </div>
 
 
             }
@@ -463,6 +553,128 @@ function App() {
 
 
             </div>
+
+
+
+
+
+
+
+            {/* SEASON RESULT */}
+
+
+            {
+
+            seasonLoading &&
+
+            <p>
+                Simulating Season...
+            </p>
+
+            }
+
+
+
+
+
+            {
+
+            seasonResult &&
+
+
+            <div
+
+            style={{
+
+                marginTop:30,
+
+                border:"2px solid black",
+
+                padding:20,
+
+                borderRadius:10
+
+            }}
+
+            >
+
+
+                <h2>
+                    🏆 Premier League Season
+                </h2>
+
+
+
+                <h3>
+
+                    Record:
+
+                    {" "}
+
+                    {seasonResult.wins}
+
+                    -
+
+                    {seasonResult.draws}
+
+                    -
+
+                    {seasonResult.losses}
+
+
+                </h3>
+
+
+
+                <p>
+                    Points: {seasonResult.points}
+                </p>
+
+
+
+                <p>
+
+                    Goals:
+
+                    {" "}
+
+                    {seasonResult.goalsFor}
+
+                    -
+
+                    {seasonResult.goalsAgainst}
+
+                </p>
+
+
+
+                <h3>
+                    🥇 Top Scorer
+                </h3>
+
+
+                <p>
+                    {seasonResult.topScorer?.name}
+                </p>
+
+
+
+
+                <h3>
+                    🎯 Top Assister
+                </h3>
+
+
+                <p>
+                    {seasonResult.topAssister?.name}
+                </p>
+
+
+
+            </div>
+
+
+            }
 
 
 

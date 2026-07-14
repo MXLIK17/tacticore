@@ -1,6 +1,6 @@
 const {
-    simulateSeason
-} = require("./services/seasonService");
+    createSeasonSummary
+} = require("./services/seasonSummaryService");
 
 
 
@@ -44,6 +44,10 @@ const myTeam = {
 
 
 
+const season =
+    simulateSeason(team);
+
+
 console.log(
-    simulateSeason(myTeam)
+    createSeasonSummary(season)
 );

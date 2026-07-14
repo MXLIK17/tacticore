@@ -5,23 +5,37 @@ const {
 function selectScorer(team){
 
 
+    // Historical teams do not have player data yet
+    if(!team.players){
+
+        return null;
+
+    }
+
+
+
     const attackers =
         team.players.filter(
+
             p =>
             p.position === "FW" ||
             p.position === "ST"
+
         );
 
 
-    if(!attackers.length)
+
+    if(attackers.length === 0){
+
         return null;
+
+    }
 
 
 
     return attackers[
         Math.floor(
-            random()
-            *
+            Math.random() *
             attackers.length
         )
     ];
