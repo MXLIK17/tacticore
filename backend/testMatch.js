@@ -1,48 +1,21 @@
 const {
-    simulateMatch
-}
-=
-require("./services/matchService");
+    normalizeTeam
+}=require("./services/teamAdapterService");
 
 
+const brazil={
 
-const myTeam = {
+name:"Brazil 2002",
 
-
-    attack:95,
-
-    midfield:92,
-
-    defense:93,
-
-    goalkeeper:94
-
-
-};
-
-
-
-const opponent = {
-
-
-    attack:88,
-
-    midfield:86,
-
-    defense:90,
-
-    goalkeeper:89
-
+attack:95,
+midfield:92,
+defense:88,
+goalkeeper:90
 
 };
 
 
 
 console.log(
-
-    simulateMatch(
-        myTeam,
-        opponent
-    )
-
+    normalizeTeam(brazil)
 );

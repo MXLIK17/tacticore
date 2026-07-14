@@ -1,25 +1,68 @@
 const express = require("express");
+
 const router = express.Router();
 
-const {
-    startLeague,
-    nextMatch,
-    finalizeTeam
-} = require("../controllers/tournamentController");
 
-/**
- * Start tournament manually (debug)
- */
-router.post("/start", startLeague);
+const tournamentController =
+require("../controllers/tournamentController");
 
-/**
- * Start tournament from draft 
- */
-router.post("/finalize", finalizeTeam);
 
-/**
- * ▶ Play next match
- */
-router.post("/next", nextMatch);
+
+
+// ==============================
+// PREMIER LEAGUE
+// ==============================
+
+
+router.post(
+    "/league/start",
+    tournamentController.startLeague
+);
+
+
+router.post(
+    "/league/next",
+    tournamentController.nextMatch
+);
+
+
+
+
+
+// ==============================
+// TEAM FINALIZATION
+// ==============================
+
+
+router.post(
+    "/finalize",
+    tournamentController.finalizeTeam
+);
+
+
+
+
+
+
+// ==============================
+// WORLD CUP
+// ==============================
+
+
+router.post(
+    "/worldcup/start",
+    tournamentController.startWorldCup
+);
+
+
+
+router.post(
+    "/worldcup/next",
+    tournamentController.nextWorldCupMatch
+);
+
+
+
+
 
 module.exports = router;

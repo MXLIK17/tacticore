@@ -2,18 +2,40 @@ import { useState } from "react";
 
 const API = "http://localhost:3000";
 
+
 function App() {
 
-    const [draft, setDraft] = useState({});
-    const [spinResult, setSpinResult] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [mode, setMode] = useState("premier");
 
-    const [seasonResult, setSeasonResult] = useState(null);
-    const [seasonLoading, setSeasonLoading] = useState(false);
+    const [draft,setDraft] = useState({});
+
+    const [spinResult,setSpinResult] = useState(null);
+
+    const [loading,setLoading] = useState(false);
+
+    const [mode,setMode] = useState("premier");
+
+
+
+    const [seasonResult,setSeasonResult] = useState(null);
+
+    const [seasonLoading,setSeasonLoading] = useState(false);
+
+
+
+    const [worldCupStarted,setWorldCupStarted] = useState(false);
+
+    const [worldCupResult,setWorldCupResult] = useState(null);
+
+    const [worldCupFinished,setWorldCupFinished] = useState(false);
+
+    const [worldCupHistory,setWorldCupHistory] = useState([]);
+
+
+
 
 
     const positions = [
+
         "GK",
         "CB1",
         "CB2",
@@ -25,47 +47,58 @@ function App() {
         "FW1",
         "FW2",
         "ST"
+
     ];
 
 
 
-    const layout = {
 
-        GK:{ top:"85%", left:"50%" },
 
-        CB1:{ top:"65%", left:"35%" },
+    const layout={
 
-        CB2:{ top:"65%", left:"65%" },
 
-        LB:{ top:"70%", left:"15%" },
+        GK:{top:"85%",left:"50%"},
 
-        RB:{ top:"70%", left:"85%" },
+        CB1:{top:"65%",left:"35%"},
 
-        CM1:{ top:"50%", left:"35%" },
+        CB2:{top:"65%",left:"65%"},
 
-        CM2:{ top:"50%", left:"50%" },
+        LB:{top:"70%",left:"15%"},
 
-        CM3:{ top:"50%", left:"65%" },
+        RB:{top:"70%",left:"85%"},
 
-        FW1:{ top:"30%", left:"35%" },
+        CM1:{top:"50%",left:"35%"},
 
-        FW2:{ top:"30%", left:"65%" },
+        CM2:{top:"50%",left:"50%"},
 
-        ST:{ top:"15%", left:"50%" }
+        CM3:{top:"50%",left:"65%"},
+
+        FW1:{top:"30%",left:"35%"},
+
+        FW2:{top:"30%",left:"65%"},
+
+        ST:{top:"15%",left:"50%"}
+
 
     };
 
 
 
 
-    async function handleSpin(position) {
+
+
+
+    async function handleSpin(position){
 
 
         setLoading(true);
 
 
-        const response = await fetch(
+        const response =
+        await fetch(
+
             `${API}/api/draft/spin`,
+
             {
 
                 method:"POST",
@@ -76,20 +109,20 @@ function App() {
 
                 body:JSON.stringify({
 
-                    position:position,
+                    position,
 
-                    mode:mode
+                    mode
 
                 })
 
             }
+
         );
 
 
-        const data = await response.json();
+        const data =
+        await response.json();
 
-
-        console.log("Spin Response:", data);
 
 
         setSpinResult(data.data);
@@ -97,16 +130,24 @@ function App() {
 
         setLoading(false);
 
+
     }
 
 
 
 
-    async function handleSelect(position, player) {
+
+
+
+
+
+    async function handleSelect(position,player){
 
 
         await fetch(
+
             `${API}/api/draft/select`,
+
             {
 
                 method:"POST",
@@ -115,15 +156,17 @@ function App() {
                     "Content-Type":"application/json"
                 },
 
+
                 body:JSON.stringify({
 
-                    position:position,
+                    position,
 
-                    player:player
+                    player
 
                 })
 
             }
+
         );
 
 
@@ -140,7 +183,14 @@ function App() {
 
         setSpinResult(null);
 
+
     }
+
+
+
+
+
+
 
 
 
@@ -151,56 +201,47 @@ function App() {
         setSeasonLoading(true);
 
 
-
         const response =
-            await fetch(
+        await fetch(
 
-                `${API}/api/season/simulate`,
+            `${API}/api/season/simulate`,
 
-                {
+            {
 
-                    method:"POST",
+                method:"POST",
 
-                    headers:{
-                        "Content-Type":"application/json"
-                    },
+                headers:{
+                    "Content-Type":"application/json"
+                },
 
+                body:JSON.stringify({
 
-                    body:JSON.stringify({
+                    team:{
 
-                        team:{
+                        name:"TactiCore FC",
 
-                            name:"TactiCore FC",
+                        players:Object.values(draft)
 
-                            players:Object.values(draft)
+                    }
 
-                        }
+                })
 
-                    })
+            }
 
-                }
-
-            );
+        );
 
 
 
         const data =
-            await response.json();
+        await response.json();
 
 
 
-        console.log(
-            "Season Result:",
-            data
-        );
-
-
-        setSeasonResult(
-            data.data
-        );
+        setSeasonResult(data.data);
 
 
         setSeasonLoading(false);
+
 
     }
 
@@ -208,479 +249,652 @@ function App() {
 
 
 
-    return (
 
-        <div
 
-        style={{
 
-            padding:20,
 
-            fontFamily:"Arial"
+    async function startWorldCup(){
 
-        }}
 
-        >
+        if(
+            Object.keys(draft).length < 11
+        ){
 
+            alert(
+                "Complete your draft first"
+            );
 
-            <h1>
-                ⚽ TactiCore Draft
-            </h1>
+            return;
 
+        }
 
 
-            <h2>
-                Select Tournament
-            </h2>
 
+        const response =
+        await fetch(
 
-
-            <button
-
-                onClick={() =>
-                    setMode("premier")
-                }
-
-            >
-
-                🏴 Premier League
-
-            </button>
-
-
-
-
-            <button
-
-                style={{
-                    marginLeft:10
-                }}
-
-                onClick={() =>
-                    setMode("worldcup")
-                }
-
-            >
-
-                🌎 World Cup
-
-            </button>
-
-
-
-
-            <h3>
-                Current Mode: {mode}
-            </h3>
-
-
-
-
-
-            {/* PITCH */}
-
-
-            <div
-
-                style={{
-
-                    position:"relative",
-
-                    height:600,
-
-                    width:"100%",
-
-                    background:"green",
-
-                    border:"2px solid black",
-
-                    marginTop:20
-
-                }}
-
-            >
-
-
-                {
-
-                positions.map((position)=>(
-
-
-                    <div
-
-                        key={position}
-
-                        style={{
-
-                            position:"absolute",
-
-                            ...layout[position],
-
-                            transform:
-                            "translate(-50%,-50%)"
-
-                        }}
-
-                    >
-
-
-
-                        <div
-
-                        style={{
-
-                            background:"white",
-
-                            padding:10,
-
-                            borderRadius:10,
-
-                            width:110,
-
-                            textAlign:"center"
-
-                        }}
-
-                        >
-
-
-
-                            <b>
-                                {position}
-                            </b>
-
-
-
-                            {
-
-                            draft[position]
-
-                            ?
-
-                            <p>
-                                {draft[position].name}
-                            </p>
-
-
-                            :
-
-                            <button
-
-                                onClick={() =>
-                                    handleSpin(position)
-                                }
-
-                            >
-
-                                Spin
-
-                            </button>
-
-
-                            }
-
-
-
-                        </div>
-
-
-                    </div>
-
-
-                ))
-
-                }
-
-
-
-            </div>
-
-
-
-
-
-            <button
-
-                onClick={startSeason}
-
-                style={{
-
-                    marginTop:20,
-
-                    padding:15,
-
-                    fontSize:18
-
-                }}
-
-            >
-
-                🏆 Start Premier League Season
-
-            </button>
-
-
-
-
-
-
-
-            {/* SPIN RESULT */}
-
-
-            <div
-
-            style={{
-
-                marginTop:30
-
-            }}
-
-            >
-
-
-            <h2>
-                🎲 Spin Result
-            </h2>
-
-
+            `${API}/api/tournament/worldcup/start`,
 
             {
 
-            loading &&
+                method:"POST",
 
-            <p>
-                Spinning...
-            </p>
-
-            }
+                headers:{
+                    "Content-Type":"application/json"
+                },
 
 
+                body:JSON.stringify({
 
+                    team:{
 
+                        name:"TactiCore FC",
 
-            {
-
-            spinResult &&
-
-
-            <div
-
-            style={{
-
-                border:"1px solid gray",
-
-                padding:20,
-
-                borderRadius:10
-
-            }}
-
-            >
-
-
-                <h2>
-                    {spinResult.tier}
-                </h2>
-
-
-                <h3>
-                    {spinResult.team}
-                </h3>
-
-
-                <p>
-                    Choose your player:
-                </p>
-
-
-
-
-                {
-
-                spinResult.players.map((player)=>(
-
-
-                    <button
-
-                    key={player}
-
-                    style={{
-
-                        display:"block",
-
-                        margin:5,
-
-                        padding:8
-
-                    }}
-
-
-
-                    onClick={() =>
-
-                        handleSelect(
-
-                            spinResult.position,
-
-                            {
-                                name:player
-                            }
-
-                        )
+                        players:Object.values(draft)
 
                     }
 
-
-                    >
-
-                        {player}
-
-                    </button>
-
-
-                ))
-
-                }
-
-
-
-            </div>
-
+                })
 
             }
 
-
-
-            </div>
-
+        );
 
 
 
+        const data =
+        await response.json();
 
 
 
-            {/* SEASON RESULT */}
+        console.log(data);
 
+
+
+        setWorldCupStarted(true);
+
+        setWorldCupFinished(false);
+
+        setWorldCupHistory([]);
+
+        setWorldCupResult(null);
+
+
+    }
+
+
+
+
+
+
+
+
+
+    async function nextWorldCupMatch(){
+
+
+        const response =
+        await fetch(
+
+            `${API}/api/tournament/worldcup/next`,
 
             {
 
-            seasonLoading &&
-
-            <p>
-                Simulating Season...
-            </p>
+                method:"POST"
 
             }
 
+        );
+
+
+
+        const data =
+        await response.json();
+
+
+
+        console.log(data);
+
+
+
+        if(data.data.history){
+
+
+            setWorldCupHistory(
+                data.data.history
+            );
+
+
+        }
+
+
+
+        if(data.data.match){
+
+
+            setWorldCupResult(
+                data.data.match
+            );
+
+
+        }
+
+        else{
+
+
+            setWorldCupFinished(true);
+
+
+        }
+
+
+
+    }
 
 
 
 
-            {
-
-            seasonResult &&
-
-
-            <div
-
-            style={{
-
-                marginTop:30,
-
-                border:"2px solid black",
-
-                padding:20,
-
-                borderRadius:10
-
-            }}
-
-            >
-
-
-                <h2>
-                    🏆 Premier League Season
-                </h2>
-
-
-
-                <h3>
-
-                    Record:
-
-                    {" "}
-
-                    {seasonResult.wins}
-
-                    -
-
-                    {seasonResult.draws}
-
-                    -
-
-                    {seasonResult.losses}
-
-
-                </h3>
-
-
-
-                <p>
-                    Points: {seasonResult.points}
-                </p>
-
-
-
-                <p>
-
-                    Goals:
-
-                    {" "}
-
-                    {seasonResult.goalsFor}
-
-                    -
-
-                    {seasonResult.goalsAgainst}
-
-                </p>
-
-
-
-                <h3>
-                    🥇 Top Scorer
-                </h3>
-
-
-                <p>
-                    {seasonResult.topScorer?.name}
-                </p>
 
 
 
 
-                <h3>
-                    🎯 Top Assister
-                </h3>
-
-
-                <p>
-                    {seasonResult.topAssister?.name}
-                </p>
 
 
 
-            </div>
+return (
+
+<div style={{
+padding:20,
+fontFamily:"Arial"
+}}>
 
 
-            }
+<h1>
+⚽ TactiCore
+</h1>
 
 
 
-        </div>
+<button onClick={()=>setMode("premier")}>
 
-    );
+🏴 Premier League
+
+</button>
+
+
+<button
+
+style={{marginLeft:10}}
+
+onClick={()=>setMode("worldcup")}
+
+>
+
+🌎 World Cup
+
+</button>
+
+
+
+<h3>
+Mode: {mode}
+</h3>
+
+
+
+
+
+
+<div
+
+style={{
+
+height:600,
+
+background:"green",
+
+position:"relative",
+
+border:"2px solid black"
+
+}}
+
+>
+
+
+{
+
+positions.map(pos=>(
+
+
+<div
+
+key={pos}
+
+style={{
+
+position:"absolute",
+
+...layout[pos],
+
+transform:"translate(-50%,-50%)"
+
+}}
+
+>
+
+
+<div
+
+style={{
+
+background:"white",
+
+padding:10,
+
+borderRadius:10
+
+}}
+
+>
+
+
+<b>
+{pos}
+</b>
+
+
+{
+
+draft[pos]
+
+?
+
+<p>
+{draft[pos].name}
+</p>
+
+
+:
+
+<button
+
+onClick={()=>handleSpin(pos)}
+
+>
+
+Spin
+
+</button>
+
+}
+
+
+
+</div>
+
+
+</div>
+
+
+))
+
+
+}
+
+
+</div>
+
+
+
+
+
+
+
+{loading && <p>Spinning...</p>}
+
+
+
+
+
+
+{
+
+spinResult &&
+
+
+<div>
+
+
+<h3>
+{spinResult.team}
+</h3>
+
+
+{
+
+spinResult.players.map(player=>(
+
+
+<button
+
+key={player}
+
+onClick={()=>handleSelect(
+
+spinResult.position,
+
+{name:player}
+
+)}
+
+>
+
+{player}
+
+</button>
+
+
+))
+
+
+}
+
+
+</div>
+
+
+}
+
+
+
+
+
+
+
+
+{
+mode==="premier" &&
+
+
+<div>
+
+
+<button onClick={startSeason}>
+
+Start Season
+
+</button>
+
+
+
+{
+
+seasonResult &&
+
+
+<div>
+
+
+<h2>
+Final Season Record
+</h2>
+
+
+<h1>
+
+{seasonResult.wins}
+
+-
+
+{seasonResult.draws}
+
+-
+
+{seasonResult.losses}
+
+</h1>
+
+
+<p>
+Points:
+{seasonResult.points}
+</p>
+
+
+<p>
+Goals:
+{seasonResult.goalsFor}
+-
+{seasonResult.goalsAgainst}
+</p>
+
+
+<p>
+Top Scorer:
+{seasonResult.topScorer?.name}
+</p>
+
+
+<p>
+Top Assister:
+{seasonResult.topAssister?.name}
+</p>
+
+
+</div>
+
+
+}
+
+
+</div>
+
+
+}
+
+
+
+
+
+
+
+
+
+{
+mode==="worldcup" &&
+
+
+<div
+
+style={{
+
+marginTop:30,
+
+border:"2px solid black",
+
+padding:20
+
+}}
+
+>
+
+
+<h2>
+🌎 World Cup
+</h2>
+
+
+
+{
+
+!worldCupStarted &&
+
+<button onClick={startWorldCup}>
+
+Start World Cup
+
+</button>
+
+}
+
+
+
+
+{
+
+worldCupStarted && !worldCupFinished &&
+
+<button onClick={nextWorldCupMatch}>
+
+Play Next Match
+
+</button>
+
+}
+
+
+
+
+
+
+{
+
+worldCupResult &&
+
+
+<div>
+
+
+<h3>
+{worldCupResult.stage}
+</h3>
+
+
+<h2>
+
+{worldCupResult.teamA}
+
+vs
+
+{worldCupResult.teamB}
+
+</h2>
+
+
+<h1>
+{worldCupResult.score}
+</h1>
+
+
+<p>
+Winner:
+{worldCupResult.winner}
+</p>
+
+
+</div>
+
+
+}
+
+
+
+
+
+
+
+<h2>
+Tournament History
+</h2>
+
+
+
+{
+
+worldCupHistory.map((match,index)=>(
+
+
+<div
+
+key={index}
+
+style={{
+
+border:"1px solid gray",
+
+margin:10,
+
+padding:10
+
+}}
+
+>
+
+
+<h3>
+{match.stage}
+</h3>
+
+
+<p>
+{match.teamA}
+vs
+{match.teamB}
+</p>
+
+
+<h2>
+{match.score}
+</h2>
+
+
+<p>
+Winner:
+{match.winner}
+</p>
+
+
+</div>
+
+
+))
+
+
+}
+
+
+
+
+
+{
+
+worldCupFinished &&
+
+
+<h1>
+🏆 WORLD CUP CHAMPION
+</h1>
+
+
+}
+
+
+
+</div>
+
+
+}
+
+
+
+
+
+</div>
+
+
+);
+
 
 }
 

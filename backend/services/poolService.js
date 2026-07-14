@@ -1,5 +1,5 @@
-const premierLeaguePools = require("../data/premierLeaguePools");
-const worldCupPools = require("../data/worldCupPools");
+const premierLeaguePools = require("../data/pools/premierLeaguePools");
+const worldCupPools = require("../data/pools/worldCupPools");
 
 function getTier() {
     const random = Math.random();
