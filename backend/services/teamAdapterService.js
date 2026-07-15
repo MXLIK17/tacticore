@@ -14,11 +14,13 @@ function generatePlayer(name, position, stats) {
 }
 
 function average(values) {
-    if (!values.length) {
+    const validValues = values.filter(Number.isFinite);
+
+    if (!validValues.length) {
         return 75;
     }
 
-    return values.reduce((total, value) => total + value, 0) / values.length;
+    return validValues.reduce((total, value) => total + value, 0) / validValues.length;
 }
 
 function findPlayer(name) {
@@ -147,17 +149,19 @@ function calculateTeamRating(draftSlots) {
         goalkeeper.push(rating.goalkeeper);
     });
 
+    const goalkeeperRating = Math.max(...goalkeeper.filter(Number.isFinite), 0);
+
     return {
         attack: Math.round(average(attack)),
         midfield: Math.round(average(midfield)),
         defense: Math.round(average(defense)),
-        goalkeeper: Math.round(Math.max(...goalkeeper, 0)),
+        goalkeeper: Math.round(goalkeeperRating),
         overall: Math.round(
             (
                 average(attack)
                 + average(midfield)
                 + average(defense)
-                + Math.max(...goalkeeper, 0)
+                + goalkeeperRating
             ) / 4
         )
     };

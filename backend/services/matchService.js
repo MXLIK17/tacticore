@@ -1,239 +1,52 @@
-const {
-    random
-}=Math;
+function selectScorer(team) {
+    if (!team.players) return null;
 
-function selectScorer(team){
-
-
-    // Historical teams do not have player data yet
-    if(!team.players){
-
-        return null;
-
-    }
-
-
-
-    const attackers =
-        team.players.filter(
-
-            p =>
-            p.position === "FW" ||
-            p.position === "ST"
-
-        );
-
-
-
-    if(attackers.length === 0){
-
-        return null;
-
-    }
-
-
-
-    return attackers[
-        Math.floor(
-            Math.random() *
-            attackers.length
-        )
-    ];
-
-}
-
-function clamp(value,min,max){
-
-    return Math.max(
-        min,
-        Math.min(
-            value,
-            max
-        )
+    const attackers = team.players.filter((player) =>
+        player.position === "FW" ||
+        player.position === "ST" ||
+        player.position?.startsWith("FW") ||
+        player.position?.startsWith("ST")
     );
 
+    if (!attackers.length) return null;
+    return attackers[Math.floor(Math.random() * attackers.length)];
 }
 
-
-
-function calculateExpectedGoals(
-    team,
-    opponent,
-    isHome = false
-){
-
-
-    const attackDifference =
-        team.attack -
-        opponent.defense;
-
-
-
-    const midfieldControl =
-        (
-            team.midfield -
-            opponent.midfield
-        )
-        *
-        0.15;
-
-
-
-    let xG =
-        1.05
-        +
-        attackDifference * 0.055
-        +
-        midfieldControl
-        +
-        (isHome ? 0.14 : 0);
-
-
-
-    const goalkeeperEffect =
-        (
-            opponent.goalkeeper - 85
-        )
-        *
-        0.03;
-
-
-
-    xG -= goalkeeperEffect;
-
-
-
-    return clamp(
-        xG,
-        0.1,
-        3.4
-    );
-
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(value, max));
 }
 
+function safeRating(value) {
+    return Number.isFinite(value) ? value : 75;
+}
 
+function calculateExpectedGoals(team, opponent, isHome = false) {
+    const attackDifference = safeRating(team.attack) - safeRating(opponent.defense);
+    const midfieldControl = (safeRating(team.midfield) - safeRating(opponent.midfield)) * 0.15;
+    const goalkeeperEffect = (safeRating(opponent.goalkeeper) - 85) * 0.03;
+    const xG = 1.05 + attackDifference * 0.055 + midfieldControl + (isHome ? 0.14 : 0) - goalkeeperEffect;
+    return clamp(xG, 0.1, 3.4);
+}
 
-
-function generateGoals(xG){
-
-
+function generateGoals(xG) {
     let goals = 0;
-
-
-    for(
-        let i=0;
-        i<6;
-        i++
-    ){
-
-        if(
-            Math.random()
-            <
-            xG / 6
-        ){
-
-            goals++;
-
-        }
-
+    for (let chance = 0; chance < 6; chance++) {
+        if (Math.random() < xG / 6) goals++;
     }
-
-
     return goals;
-
 }
 
+function simulateMatch(homeTeam, awayTeam) {
+    const homeGoals = generateGoals(calculateExpectedGoals(homeTeam, awayTeam, true));
+    const awayGoals = generateGoals(calculateExpectedGoals(awayTeam, homeTeam));
 
-
-
-function simulateMatch(
-    homeTeam,
-    awayTeam
-){
-
-
-    const homeXG =
-        calculateExpectedGoals(
-            homeTeam,
-            awayTeam,
-            true
-        );
-
-
-
-    const awayXG =
-        calculateExpectedGoals(
-            awayTeam,
-            homeTeam,
-            false
-        );
-
-
-
-    const homeGoals =
-        generateGoals(homeXG);
-
-
-
-    const awayGoals =
-        generateGoals(awayXG);
-
-
-
-   return {
-
-    homeGoals,
-
-    awayGoals,
-
-
-    homeScorers:
-        Array.from(
-            {
-                length: homeGoals
-            },
-            () =>
-                selectScorer(homeTeam)
-        ),
-
-
-    awayScorers:
-        Array.from(
-            {
-                length: awayGoals
-            },
-            () =>
-                selectScorer(awayTeam)
-        ),
-
-
-    result:
-
-        homeGoals > awayGoals
-
-        ?
-        "HOME_WIN"
-
-        :
-
-        awayGoals > homeGoals
-
-        ?
-        "AWAY_WIN"
-
-        :
-
-        "DRAW"
-
-};
-
-
+    return {
+        homeGoals,
+        awayGoals,
+        homeScorers: Array.from({ length: homeGoals }, () => selectScorer(homeTeam)),
+        awayScorers: Array.from({ length: awayGoals }, () => selectScorer(awayTeam)),
+        result: homeGoals > awayGoals ? "HOME_WIN" : awayGoals > homeGoals ? "AWAY_WIN" : "DRAW"
+    };
 }
 
-
-
-module.exports = {
-
-    simulateMatch
-
-};
+module.exports = { simulateMatch, calculateExpectedGoals, generateGoals };

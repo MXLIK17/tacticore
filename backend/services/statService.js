@@ -26,7 +26,7 @@ function getTopScorer(stats) {
         (a, b) => b[1].goals - a[1].goals
     );
 
-    if (!sorted.length) {
+    if (!sorted.length || sorted[0][1].goals === 0) {
         return null;
     }
 
@@ -44,7 +44,7 @@ function getTopAssister(stats) {
         (a, b) => b[1].assists - a[1].assists
     );
 
-    if (!sorted.length) {
+    if (!sorted.length || sorted[0][1].assists === 0) {
         return null;
     }
 
