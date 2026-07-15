@@ -1,50 +1,55 @@
-function selectScorer(team) {
-    if (!team.players) return null;
-
-    const attackers = team.players.filter((player) =>
-        player.position === "FW" ||
-        player.position === "ST" ||
-        player.position?.startsWith("FW") ||
-        player.position?.startsWith("ST")
+function selectAttacker(team) {
+    const attackers = (team.players || []).filter((player) =>
+        player.position === "FW" || player.position === "ST" ||
+        player.position?.startsWith("FW") || player.position?.startsWith("ST")
     );
-
-    if (!attackers.length) return null;
-    return attackers[Math.floor(Math.random() * attackers.length)];
+    return attackers.length ? attackers[Math.floor(Math.random() * attackers.length)] : null;
 }
 
-function clamp(value, min, max) {
-    return Math.max(min, Math.min(value, max));
+function selectAssister(team, scorer) {
+    const candidates = (team.players || []).filter((player) => player !== scorer && player.position !== "GK");
+    return candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : null;
 }
 
-function safeRating(value) {
-    return Number.isFinite(value) ? value : 75;
-}
+function clamp(value, min, max) { return Math.max(min, Math.min(value, max)); }
+function safeRating(value) { return Number.isFinite(value) ? value : 75; }
 
 function calculateExpectedGoals(team, opponent, isHome = false) {
-    const attackDifference = safeRating(team.attack) - safeRating(opponent.defense);
-    const midfieldControl = (safeRating(team.midfield) - safeRating(opponent.midfield)) * 0.15;
-    const goalkeeperEffect = (safeRating(opponent.goalkeeper) - 85) * 0.03;
-    const xG = 1.05 + attackDifference * 0.055 + midfieldControl + (isHome ? 0.14 : 0) - goalkeeperEffect;
-    return clamp(xG, 0.1, 3.4);
+    const attackEdge = safeRating(team.attack) - safeRating(opponent.defense);
+    const midfieldEdge = safeRating(team.midfield) - safeRating(opponent.midfield);
+    const goalkeeperEffect = (safeRating(opponent.goalkeeper) - 85) * 0.025;
+    const xG = 1.18 + attackEdge * 0.045 + midfieldEdge * 0.065 + (isHome ? 0.16 : 0) - goalkeeperEffect;
+    return clamp(xG, 0.18, 3.2);
 }
 
 function generateGoals(xG) {
     let goals = 0;
-    for (let chance = 0; chance < 6; chance++) {
-        if (Math.random() < xG / 6) goals++;
+    for (let chance = 0; chance < 7; chance++) {
+        if (Math.random() < xG / 7) goals++;
     }
     return goals;
+}
+
+function createGoalEvents(team, goals) {
+    return Array.from({ length: goals }, () => {
+        const scorer = selectAttacker(team);
+        return { scorer, assister: scorer ? selectAssister(team, scorer) : null };
+    });
 }
 
 function simulateMatch(homeTeam, awayTeam) {
     const homeGoals = generateGoals(calculateExpectedGoals(homeTeam, awayTeam, true));
     const awayGoals = generateGoals(calculateExpectedGoals(awayTeam, homeTeam));
+    const homeEvents = createGoalEvents(homeTeam, homeGoals);
+    const awayEvents = createGoalEvents(awayTeam, awayGoals);
 
     return {
         homeGoals,
         awayGoals,
-        homeScorers: Array.from({ length: homeGoals }, () => selectScorer(homeTeam)),
-        awayScorers: Array.from({ length: awayGoals }, () => selectScorer(awayTeam)),
+        homeScorers: homeEvents.map((event) => event.scorer),
+        awayScorers: awayEvents.map((event) => event.scorer),
+        homeAssists: homeEvents.map((event) => event.assister),
+        awayAssists: awayEvents.map((event) => event.assister),
         result: homeGoals > awayGoals ? "HOME_WIN" : awayGoals > homeGoals ? "AWAY_WIN" : "DRAW"
     };
 }

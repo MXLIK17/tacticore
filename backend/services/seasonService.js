@@ -98,14 +98,29 @@ function simulateSeason(myTeam) {
         if (home.id === "team-0" || away.id === "team-0") {
             const userAtHome = home.id === "team-0";
             const scorers = userAtHome ? result.homeScorers : result.awayScorers;
-            scorers.filter(Boolean).forEach((scorer) => recordGoal(playerStats, scorer.name, null));
+            const assists = userAtHome ? result.homeAssists : result.awayAssists;
+            scorers.forEach((scorer, index) => {
+                if (scorer) recordGoal(playerStats, scorer.name, assists[index]?.name || null);
+            });
             matches.push({ opponent: userAtHome ? away.name : home.name, venue: userAtHome ? "Home" : "Away", score: `${userAtHome ? result.homeGoals : result.awayGoals}-${userAtHome ? result.awayGoals : result.homeGoals}`, outcome: userAtHome ? result.result : result.result === "HOME_WIN" ? "AWAY_WIN" : result.result === "AWAY_WIN" ? "HOME_WIN" : "DRAW" });
         }
     }));
 
     const table = sortTable(standings);
     const userRow = table.find((row) => row.team === userTeam.name);
-    return { ...userRow, wins: userRow.wins, draws: userRow.draws, losses: userRow.losses, goalsFor: userRow.goalsFor, goalsAgainst: userRow.goalsAgainst, points: userRow.points, matches, table, topScorer: getTopScorer(playerStats), topAssister: getTopAssister(playerStats) };
+    const seasonRating = userRow.points >= 90 ? "A+" : userRow.points >= 80 ? "A" : userRow.points >= 70 ? "B" : userRow.points >= 60 ? "C" : userRow.points >= 50 ? "D" : "E";
+    return {
+        wins: userRow.wins,
+        draws: userRow.draws,
+        losses: userRow.losses,
+        goalsFor: userRow.goalsFor,
+        goalsAgainst: userRow.goalsAgainst,
+        goalDifference: userRow.goalDifference,
+        points: userRow.points,
+        topScorer: getTopScorer(playerStats),
+        topAssister: getTopAssister(playerStats),
+        seasonRating
+    };
 }
 
 module.exports = { simulateSeason, generateDoubleRoundRobin, createStandings, recordResult, sortTable };

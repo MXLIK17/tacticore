@@ -143,13 +143,32 @@ function calculateTeamRating(draftSlots) {
         const player = findPlayer(playerData.name);
         const rating = getPlayerRating(player);
 
-        attack.push(rating.attack);
-        midfield.push(rating.midfield);
-        defense.push(rating.defense);
-        goalkeeper.push(rating.goalkeeper);
+        switch (player?.position) {
+            case "GK":
+                goalkeeper.push(rating.goalkeeper);
+                break;
+            case "CB":
+            case "LB":
+            case "RB":
+                defense.push(rating.defense);
+                break;
+            case "CM":
+                midfield.push(rating.midfield);
+                break;
+            case "FW":
+            case "ST":
+                attack.push(rating.attack);
+                break;
+            default:
+                // Unknown historical entries retain a neutral contribution.
+                attack.push(rating.attack);
+                midfield.push(rating.midfield);
+                defense.push(rating.defense);
+                goalkeeper.push(rating.goalkeeper);
+        }
     });
 
-    const goalkeeperRating = Math.max(...goalkeeper.filter(Number.isFinite), 0);
+    const goalkeeperRating = Math.max(...goalkeeper.filter(Number.isFinite), 75);
 
     return {
         attack: Math.round(average(attack)),
