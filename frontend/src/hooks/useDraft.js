@@ -2,7 +2,8 @@ import { useMemo, useState } from "react";
 import { competitionService, draftService } from "../services/api";
 import { FORMATIONS } from "../utils/formations";
 
-const defaultPlayer = (name, position) => ({ name, position, overall: 80 });
+const getPresentationRating = (name) => 82 + [...name].reduce((total, character) => total + character.charCodeAt(0), 0) % 14;
+const defaultPlayer = (name, position) => ({ name, position, overall: getPresentationRating(name) });
 
 export function useDraft() {
   const [mode, setMode] = useState("premier");
@@ -18,7 +19,9 @@ export function useDraft() {
   const filled = Object.keys(players).length;
   const team = useMemo(() => ({ name: "TactiCore XI", players: Object.values(players) }), [players]);
 
-  const changeFormation = (next) => { setFormation(next); setPlayers({}); setOffer(null); setSeasonResult(null); setWorldCup(null); };
+  const clearDraft = () => { setPlayers({}); setOffer(null); setSeasonResult(null); setWorldCup(null); setError(""); };
+  const changeMode = (next) => { if (next !== mode) { setMode(next); clearDraft(); } };
+  const changeFormation = (next) => { setFormation(next); clearDraft(); };
   const spin = async (slot) => {
     setLoading(true); setError("");
     try { setOffer({ ...(await draftService.spin(slot.apiPosition, mode)), slotId: slot.id }); }
@@ -33,10 +36,10 @@ export function useDraft() {
     catch (err) { setError(err.message); }
     finally { setLoading(false); }
   };
-  const reset = async () => { try { await draftService.reset(); } catch { /* local reset still restores the builder */ } setPlayers({}); setOffer(null); setSeasonResult(null); setWorldCup(null); };
+  const reset = async () => { try { await draftService.reset(); } catch { /* local reset still restores the builder */ } clearDraft(); };
   const simulateSeason = async () => { setLoading(true); setError(""); try { setSeasonResult(await competitionService.simulateSeason(team)); } catch (err) { setError(err.message); } finally { setLoading(false); } };
   const startWorldCup = async () => { setLoading(true); setError(""); try { setWorldCup(await competitionService.startWorldCup(team)); } catch (err) { setError(err.message); } finally { setLoading(false); } };
   const nextWorldCupMatch = async () => { setLoading(true); try { setWorldCup(await competitionService.nextWorldCupMatch()); } catch (err) { setError(err.message); } finally { setLoading(false); } };
 
-  return { mode, setMode, formation, changeFormation, slots, players, offer, loading, error, filled, team, spin, select, reset, seasonResult, simulateSeason, worldCup, startWorldCup, nextWorldCupMatch };
+  return { mode, setMode: changeMode, formation, changeFormation, slots, players, offer, loading, error, filled, team, spin, select, reset, seasonResult, simulateSeason, worldCup, startWorldCup, nextWorldCupMatch };
 }

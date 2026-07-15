@@ -15,7 +15,7 @@ function App() {
   const openDraft = () => setPage("draft");
 
   const pages = {
-    home: <HomePage mode={draft.mode} onModeChange={draft.setMode} onStart={openSquad} />,
+    home: <HomePage mode={draft.mode} onModeChange={draft.setMode} onStart={openDraft} />,
     squad: <SquadPage {...draft} onDraft={openDraft} onSimulate={() => setPage("simulation")} />,
     draft: <DraftPage {...draft} onBack={openSquad} />,
     simulation: <SimulationPage {...draft} onResults={() => setPage("results")} />,
