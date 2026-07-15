@@ -1,6 +1,6 @@
 # TactiCore - Development Guide
 
-## Project Overview
+# Project Overview
 
 TactiCore is a football draft and simulation game where players build dream teams from football history and test those teams in realistic competition simulations.
 
@@ -52,6 +52,10 @@ The game contains only two playable modes:
 
 1. Premier League Mode
 2. FIFA World Cup Mode
+
+The focus of Version 1 is creating a polished drafting and simulation experience.
+
+Additional football management systems should not be introduced unless they directly improve the core gameplay loop.
 
 ---
 
@@ -114,12 +118,6 @@ The simulation produces:
 - Golden Glove
 - Tournament statistics
 
-Version 1 does not include:
-
-- World Cup qualifying
-- Nations League
-- Continental tournaments
-
 ---
 
 # Historical Teams
@@ -164,18 +162,36 @@ Ratings represent only that specific season or tournament.
 
 # Core Gameplay Loop
 
-Every game follows the same structure:
-- Choose Game Mode
-- Draft Team 
-- View Completed XI
-- Simulate Competition 
-- View Results 
-- Start New Draft 
+Every game follows:
+
+Choose Game Mode
+
+↓
+
+Choose Formation
+
+↓
+
+Draft Team
+
+↓
+
+View Completed XI
+
+↓
+
+Simulate Competition
+
+↓
+
+View Results
+
+↓
+
+Start New Draft
 
 
 Every feature should strengthen this gameplay loop.
-
-Avoid adding unnecessary systems that distract from it.
 
 ---
 
@@ -217,21 +233,19 @@ The interface should feel like a football game.
 
 Avoid:
 
-- Business dashboard designs
+- Business dashboards
 - CRUD-style interfaces
 - Ultimate Team collectible card aesthetics
 - Excessive visual clutter
 
-Player information should be displayed using clean football-focused profile panels.
-
-The football pitch should always remain the primary visual element.
+The football pitch should remain the primary visual element.
 
 During squad building:
 
 - Display the football pitch
-- Display the selected formation
+- Display selected formation
 - Display eleven player positions
-- Place drafted players directly into their position
+- Place drafted players directly into their positions
 
 The user should understand their squad immediately by looking at the pitch.
 
@@ -241,7 +255,7 @@ The user should understand their squad immediately by looking at the pitch.
 
 Matches are completely simulated.
 
-The user does not control players directly.
+The user does not directly control players.
 
 The simulation should be believable rather than perfectly predictable.
 
@@ -304,7 +318,7 @@ Examples:
 - Physical
 - Goalkeeping
 
-Ratings should represent only that historical season or tournament.
+Ratings represent only that historical season or tournament.
 
 ---
 
@@ -335,7 +349,7 @@ Every competition should generate meaningful statistics.
 - Golden Ball
 - Golden Glove
 
-Player statistics should accumulate throughout each competition.
+Player statistics should accumulate throughout competitions.
 
 ---
 
@@ -379,24 +393,128 @@ React
 
 ## Backend
 
-Node.js  
+Node.js
+
 Express
 
-## Architecture
 
-Maintain:
+---
 
-- Controllers
-- Routes
-- Services
-- Models
-- Data
+# Architecture Rules
 
-Business logic should remain inside services.
+TactiCore follows a service-oriented architecture.
 
-Controllers should remain lightweight.
+## Controllers
 
-Components should be reusable.
+Controllers should:
+
+- Receive HTTP requests
+- Validate input
+- Call services
+- Return responses
+
+Controllers should NOT:
+
+- Contain football logic
+- Simulate matches
+- Calculate statistics
+- Access data directly
+
+---
+
+## Routes
+
+Routes should only define API endpoints.
+
+Routes should not contain application logic.
+
+---
+
+## Services
+
+Services contain all business logic.
+
+Examples:
+
+- Draft logic
+- Match simulation
+- Tournament progression
+- Season simulation
+- Chemistry calculations
+- Statistics
+
+
+---
+
+## Models
+
+Models store reusable structures and application state.
+
+Models should not contain simulation logic.
+
+---
+
+## Data
+
+The data folder contains historical football information only.
+
+No business logic should exist inside data files.
+
+---
+
+# Service Responsibilities
+
+## draftService.js
+
+Handles:
+
+- Draft generation
+- Position selection
+- Player selection
+
+
+## matchService.js
+
+Handles:
+
+- Football match simulation
+- Match outcomes
+
+
+## seasonService.js
+
+Handles:
+
+- Premier League season simulation
+
+
+## worldCupService.js
+
+Handles:
+
+- FIFA World Cup tournament logic
+
+
+## tournamentService.js
+
+Handles:
+
+- Shared tournament functionality
+
+
+## teamAdapterService.js
+
+Handles:
+
+- Converting drafted teams into simulation-ready teams
+
+
+## statService.js
+
+Handles:
+
+- Player and team statistics
+
 
 ---
 
@@ -425,26 +543,24 @@ Avoid:
 
 # Refactoring Guidelines
 
-Existing code may be modified if improvements are needed.
+Improve existing systems instead of rewriting them.
 
-You may:
+Existing code may be modified when necessary.
 
-- Modify existing files
-- Rename services
-- Split files
-- Merge redundant files
-- Improve architecture
-- Refactor APIs
+Prefer:
 
-Do not preserve poor implementations simply because they already exist.
+- Extending working systems
+- Removing duplication
+- Improving readability
+- Improving maintainability
 
-Preserve functionality, not implementation.
+Avoid:
 
-Prioritize:
+- Large unnecessary rewrites
+- Changing architecture without reason
+- Replacing working implementations
 
-- Maintainability
-- Scalability
-- Readability
+Preserve functionality, not poor design.
 
 ---
 
@@ -464,19 +580,31 @@ Development decisions should follow:
 
 # Instructions for Cursor
 
-When working on TactiCore:
+Before making changes:
 
-- Read this document before making changes.
-- Understand the existing architecture first.
-- Analyze before modifying.
-- Preserve the core gameplay loop: 
-Draft -> Build Team -> Simulate Competiton -> View Results 
+1. Read this document completely.
+2. Inspect the existing codebase.
+3. Understand the current architecture.
+4. Explain planned modifications before large changes.
 
-- Reuse existing systems where appropriate.
-- Refactor existing code when it improves the project.
-- Do not introduce unnecessary dependencies.
-- Keep solutions modular and scalable.
+When modifying TactiCore:
+
+- Preserve the core gameplay loop:
+  
+Draft → Build Team → Simulate Competition → View Results
+
+- Reuse existing systems when possible.
+- Keep controllers lightweight.
+- Keep business logic inside services.
+- Avoid unnecessary dependencies.
 - Avoid overengineering.
-- Prefer simple solutions that can expand later.
+- Prefer simple scalable solutions.
 
-If a feature does not improve drafting, squad building, competition simulation, or replayability, reconsider whether it belongs in Version 1.
+Every change should improve:
+
+- Drafting
+- Squad building
+- Simulation
+- Replayability
+
+If a feature does not improve the core gameplay experience, reconsider whether it belongs in Version 1.
