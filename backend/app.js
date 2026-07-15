@@ -11,6 +11,9 @@ require("./routes/draftRoutes");
 const tournamentRoutes =
 require("./routes/tournamentRoutes");
 
+const seasonRoutes =
+require("./routes/seasonRoutes");
+
 
 const app = express();
 
@@ -48,6 +51,8 @@ app.use("/api/players", playerRoutes);
 app.use("/api/draft", draftRoutes);
 
 app.use("/api/tournament", tournamentRoutes);
+
+app.use("/api/season", seasonRoutes);
 
 
 

@@ -1,36 +1,10 @@
 const express = require("express");
-
 const router = express.Router();
 
 const {
     simulateSeason
-} = require("../services/seasonService");
+} = require("../controllers/seasonController");
 
-
-router.post("/simulate", (req,res)=>{
-
-
-    const {
-        team
-    } = req.body;
-
-
-
-    const result =
-        simulateSeason(team);
-
-
-
-    res.json({
-
-        success:true,
-
-        data:result
-
-    });
-
-
-});
-
+router.post("/simulate", simulateSeason);
 
 module.exports = router;

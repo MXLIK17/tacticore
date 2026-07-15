@@ -1,268 +1,245 @@
-function generatePlayer(
-    name,
-    position,
-    stats
-){
+const players = require("../data/players");
+const draft = require("../models/draftModel");
 
-
+function generatePlayer(name, position, stats) {
     return {
-
         name,
-
         position,
-
-
-        speed:
-        stats.speed || 70,
-
-
-        shooting:
-        stats.shooting || 70,
-
-
-        passing:
-        stats.passing || 70,
-
-
-        defense:
-        stats.defense || 70,
-
-
-        stamina:
-        stats.stamina || 70
-
+        speed: stats.speed || 70,
+        shooting: stats.shooting || 70,
+        passing: stats.passing || 70,
+        defense: stats.defense || 70,
+        stamina: stats.stamina || 70
     };
-
-
 }
 
-
-
-
-
-
-function normalizeTeam(team){
-
-
-
-    // Already normalized
-
-    if(
-        team.players &&
-        Array.isArray(team.players)
-    ){
-
-        return team;
-
+function average(values) {
+    if (!values.length) {
+        return 75;
     }
 
+    return values.reduce((total, value) => total + value, 0) / values.length;
+}
 
+function findPlayer(name) {
+    return players.find((player) => player.name === name);
+}
 
-
-
-
-    // Historical teams
-
-    if(
-        team.attack
-    ){
-
-
+function getPlayerRating(player) {
+    if (!player) {
         return {
-
-
-            name:
-            team.name,
-
-
-
-            players:[
-
-
-
-                generatePlayer(
-
-                    `${team.name} ST`,
-
-                    "ST",
-
-                    {
-
-                        shooting:
-                        team.attack,
-
-                        speed:80,
-
-                        passing:70,
-
-                        defense:40
-
-                    }
-
-                ),
-
-
-
-
-
-                generatePlayer(
-
-                    `${team.name} CM`,
-
-                    "CM",
-
-                    {
-
-                        passing:
-                        team.midfield,
-
-                        speed:75,
-
-                        shooting:70,
-
-                        defense:70
-
-                    }
-
-                ),
-
-
-
-
-
-                generatePlayer(
-
-                    `${team.name} CB`,
-
-                    "CB",
-
-                    {
-
-                        defense:
-                        team.defense,
-
-                        speed:70,
-
-                        passing:60,
-
-                        shooting:40
-
-                    }
-
-                ),
-
-
-
-
-
-                generatePlayer(
-
-                    `${team.name} GK`,
-
-                    "GK",
-
-                    {
-
-                        defense:
-                        team.goalkeeper,
-
-                        speed:50,
-
-                        passing:50,
-
-                        shooting:10
-
-                    }
-
-                )
-
-
-
-            ]
-
+            attack: 75,
+            midfield: 75,
+            defense: 75,
+            goalkeeper: 75
         };
-
-
     }
 
+    switch (player.position) {
+        case "GK":
+            return {
+                attack: 10,
+                midfield: 30,
+                defense: player.defending,
+                goalkeeper: average([
+                    player.handling,
+                    player.reflexes,
+                    player.positioning,
+                    player.diving
+                ])
+            };
 
+        case "CB":
+            return {
+                attack: 35,
+                midfield: 60,
+                defense: average([
+                    player.defending,
+                    player.tackling,
+                    player.marking,
+                    player.positioning
+                ]),
+                goalkeeper: 0
+            };
 
+        case "LB":
+        case "RB":
+            return {
+                attack: average([
+                    player.passing,
+                    player.dribbling,
+                    player.crossing || 70
+                ]),
+                midfield: average([
+                    player.passing,
+                    player.stamina
+                ]),
+                defense: average([
+                    player.defending,
+                    player.tackling,
+                    player.marking
+                ]),
+                goalkeeper: 0
+            };
 
+        case "CM":
+            return {
+                attack: average([
+                    player.shooting,
+                    player.creativity,
+                    player.vision
+                ]),
+                midfield: average([
+                    player.passing,
+                    player.vision,
+                    player.creativity
+                ]),
+                defense: average([
+                    player.defending,
+                    player.tackling || 60
+                ]),
+                goalkeeper: 0
+            };
 
+        case "FW":
+        case "ST":
+            return {
+                attack: average([
+                    player.shooting,
+                    player.finishing,
+                    player.dribbling
+                ]),
+                midfield: average([
+                    player.passing,
+                    player.vision || 75
+                ]),
+                defense: 35,
+                goalkeeper: 0
+            };
 
+        default:
+            return {
+                attack: 75,
+                midfield: 75,
+                defense: 75,
+                goalkeeper: 75
+            };
+    }
+}
 
-    // AI teams fallback
+function calculateTeamRating(draftSlots) {
+    const attack = [];
+    const midfield = [];
+    const defense = [];
+    const goalkeeper = [];
+
+    Object.values(draftSlots).forEach((playerData) => {
+        if (!playerData) {
+            return;
+        }
+
+        const player = findPlayer(playerData.name);
+        const rating = getPlayerRating(player);
+
+        attack.push(rating.attack);
+        midfield.push(rating.midfield);
+        defense.push(rating.defense);
+        goalkeeper.push(rating.goalkeeper);
+    });
 
     return {
-
-
-        name:
-        team.name || "Unknown Team",
-
-
-        players:[
-
-
-
-            generatePlayer(
-
-                "AI ST",
-
-                "ST",
-
-                {}
-
-            ),
-
-
-            generatePlayer(
-
-                "AI CM",
-
-                "CM",
-
-                {}
-
-            ),
-
-
-            generatePlayer(
-
-                "AI CB",
-
-                "CB",
-
-                {}
-
-            ),
-
-
-            generatePlayer(
-
-                "AI GK",
-
-                "GK",
-
-                {}
-
-            )
-
-
-
-        ]
-
+        attack: Math.round(average(attack)),
+        midfield: Math.round(average(midfield)),
+        defense: Math.round(average(defense)),
+        goalkeeper: Math.round(Math.max(...goalkeeper, 0)),
+        overall: Math.round(
+            (
+                average(attack)
+                + average(midfield)
+                + average(defense)
+                + Math.max(...goalkeeper, 0)
+            ) / 4
+        )
     };
-
-
-
 }
 
+function buildFinalTeam() {
+    const slots = draft.slots;
+    const selectedPlayers = Object.values(slots).filter(
+        (player) => player !== null && player !== undefined
+    );
+    const ratings = calculateTeamRating(slots);
 
+    return {
+        name: "User Team",
+        slots,
+        players: selectedPlayers,
+        attack: ratings.attack,
+        midfield: ratings.midfield,
+        defense: ratings.defense,
+        goalkeeper: ratings.goalkeeper,
+        overall: ratings.overall
+    };
+}
 
+function normalizeTeam(team) {
+    if (team.players && Array.isArray(team.players)) {
+        return team;
+    }
 
+    if (team.attack) {
+        return {
+            name: team.name,
+            players: [
+                generatePlayer(`${team.name} ST`, "ST", {
+                    shooting: team.attack,
+                    speed: 80,
+                    passing: 70,
+                    defense: 40
+                }),
+                generatePlayer(`${team.name} CM`, "CM", {
+                    passing: team.midfield,
+                    speed: 75,
+                    shooting: 70,
+                    defense: 70
+                }),
+                generatePlayer(`${team.name} CB`, "CB", {
+                    defense: team.defense,
+                    speed: 70,
+                    passing: 60,
+                    shooting: 40
+                }),
+                generatePlayer(`${team.name} GK`, "GK", {
+                    defense: team.goalkeeper,
+                    speed: 50,
+                    passing: 50,
+                    shooting: 10
+                })
+            ],
+            attack: team.attack,
+            midfield: team.midfield,
+            defense: team.defense,
+            goalkeeper: team.goalkeeper
+        };
+    }
 
-module.exports={
+    return {
+        name: team.name || "Unknown Team",
+        players: [
+            generatePlayer("AI ST", "ST", {}),
+            generatePlayer("AI CM", "CM", {}),
+            generatePlayer("AI CB", "CB", {}),
+            generatePlayer("AI GK", "GK", {})
+        ],
+        attack: 75,
+        midfield: 75,
+        defense: 75,
+        goalkeeper: 75
+    };
+}
 
-    normalizeTeam
-
+module.exports = {
+    normalizeTeam,
+    calculateTeamRating,
+    buildFinalTeam
 };

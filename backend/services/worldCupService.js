@@ -6,6 +6,36 @@ const {
 const worldCupTeams =
 require("../data/teams/worldCupTeams");
 
+const {
+    calculateTeamRating
+} = require("./teamAdapterService");
+
+function prepareTeamForSimulation(team) {
+    if (team.attack != null) {
+        return team;
+    }
+
+    if (!team.players || team.players.length === 0) {
+        return team;
+    }
+
+    const slotMap = {};
+
+    team.players.forEach((player, index) => {
+        slotMap[index] = player;
+    });
+
+    const ratings = calculateTeamRating(slotMap);
+
+    return {
+        ...team,
+        attack: ratings.attack,
+        midfield: ratings.midfield,
+        defense: ratings.defense,
+        goalkeeper: ratings.goalkeeper
+    };
+}
+
 
 
 let worldCupState = {
@@ -37,35 +67,51 @@ let worldCupState = {
 
 
 
-function startWorldCup(team){
+function formatMatchEntry(matchSummary) {
+    return {
+        stage: matchSummary.round,
+        teamA: matchSummary.teamA,
+        teamB: matchSummary.teamB,
+        score: matchSummary.score,
+        winner: matchSummary.winner
+    };
+}
 
+function buildWorldCupResponse(state, latestMatch) {
+    const response = {
+        started: state.started,
+        userTeam: state.userTeam,
+        currentRound: state.currentRound,
+        rounds: state.rounds,
+        history: state.history.map(formatMatchEntry),
+        finished: state.finished,
+        champion: state.champion
+    };
 
+    if (latestMatch) {
+        response.match = formatMatchEntry(latestMatch);
+    }
+
+    return response;
+}
+
+function startWorldCup(team) {
     worldCupState = {
-
-        started:true,
-
-        userTeam:team,
-
-        currentRound:0,
-
-        rounds:[
+        started: true,
+        userTeam: prepareTeamForSimulation(team),
+        currentRound: 0,
+        rounds: [
             "Round of 16",
             "Quarter Final",
             "Semi Final",
             "Final"
         ],
-
-        history:[],
-
-        finished:false,
-
-        champion:null
-
+        history: [],
+        finished: false,
+        champion: null
     };
 
-
-    return worldCupState;
-
+    return buildWorldCupResponse(worldCupState);
 }
 
 
@@ -92,10 +138,8 @@ function playNextWorldCupMatch(){
 
 
 
-    if(worldCupState.finished){
-
-        return worldCupState;
-
+    if (worldCupState.finished) {
+        return buildWorldCupResponse(worldCupState);
     }
 
 
@@ -115,16 +159,11 @@ function playNextWorldCupMatch(){
 
 
 
-    if(!opponent){
-
+    if (!opponent) {
         worldCupState.finished = true;
+        worldCupState.champion = worldCupState.userTeam.name;
 
-        worldCupState.champion =
-        worldCupState.userTeam.name;
-
-
-        return worldCupState;
-
+        return buildWorldCupResponse(worldCupState);
     }
 
 
@@ -295,19 +334,12 @@ function playNextWorldCupMatch(){
 
 
         worldCupState.champion =
-
         winner.name;
 
 
     }
 
-
-
-
-
-
-
-    return worldCupState;
+    return buildWorldCupResponse(worldCupState, matchSummary);
 
 }
 

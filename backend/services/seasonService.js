@@ -14,6 +14,40 @@ const {
 const premierLeagueTeams =
     require("../data/teams/premierLeagueTeams");
 
+const {
+    calculateTeamRating
+} = require("./teamAdapterService");
+
+function prepareTeamForSimulation(myTeam) {
+    const team = myTeam.players
+        ? myTeam
+        : { players: Object.values(myTeam) };
+
+    if (team.attack != null) {
+        return team;
+    }
+
+    if (!team.players || team.players.length === 0) {
+        return team;
+    }
+
+    const slotMap = {};
+
+    team.players.forEach((player, index) => {
+        slotMap[index] = player;
+    });
+
+    const ratings = calculateTeamRating(slotMap);
+
+    return {
+        ...team,
+        attack: ratings.attack,
+        midfield: ratings.midfield,
+        defense: ratings.defense,
+        goalkeeper: ratings.goalkeeper
+    };
+}
+
 
 
 
@@ -45,6 +79,7 @@ function convertDraftPlayers(draft){
 
 function simulateSeason(myTeam){
 
+    const preparedTeam = prepareTeamForSimulation(myTeam);
 
     let wins = 0;
 
@@ -69,11 +104,11 @@ function simulateSeason(myTeam){
 
     const players =
         convertDraftPlayers(
-            myTeam.players
+            preparedTeam.players
             ?
-            myTeam.players
+            preparedTeam.players
             :
-            myTeam
+            preparedTeam
         );
 
 
@@ -90,13 +125,8 @@ function simulateSeason(myTeam){
     */
 
     const teamWithPlayers = {
-
-
-        ...myTeam,
-
-
+        ...preparedTeam,
         players
-
     };
 
 
@@ -223,65 +253,16 @@ function simulateSeason(myTeam){
 
 
 
-return {
-
-
-    season:
-
-    {
-
-        matchesPlayed:38,
-
-
-        record:
-            `${wins}-${draws}-${losses}`,
-
-
+    return {
         wins,
-
         draws,
-
         losses,
-
-
-        points:
-            points,
-
-
+        points,
         goalsFor,
-
         goalsAgainst,
-
-
-        goalDifference:
-            goalsFor - goalsAgainst
-
-    },
-
-
-
-    stats:
-
-    {
-
-        topScorer:
-            getTopScorer(
-                playerStats
-            ),
-
-
-
-        topAssister:
-            getTopAssister(
-                playerStats
-            )
-
-    },
-
-
-    playerStats
-
-};
+        topScorer: getTopScorer(playerStats),
+        topAssister: getTopAssister(playerStats)
+    };
 
 
 }
