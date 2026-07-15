@@ -95,6 +95,7 @@ The game should encourage experimentation.
 # The Core Gameplay Loop
 
 Every TactiCore experience follows the same cycle:
+
 Choose Competition -> Choose Formation -> Draft Players -> Build Starting XI -> Simulate Competition -> Analyze Results -> Create New Draft 
 
 
