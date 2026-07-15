@@ -58,7 +58,8 @@ function clamp(value,min,max){
 
 function calculateExpectedGoals(
     team,
-    opponent
+    opponent,
+    isHome = false
 ){
 
 
@@ -79,11 +80,13 @@ function calculateExpectedGoals(
 
 
     let xG =
-        1.2
+        1.05
         +
-        attackDifference * 0.08
+        attackDifference * 0.055
         +
-        midfieldControl;
+        midfieldControl
+        +
+        (isHome ? 0.14 : 0);
 
 
 
@@ -103,7 +106,7 @@ function calculateExpectedGoals(
     return clamp(
         xG,
         0.1,
-        4
+        3.4
     );
 
 }
@@ -152,7 +155,8 @@ function simulateMatch(
     const homeXG =
         calculateExpectedGoals(
             homeTeam,
-            awayTeam
+            awayTeam,
+            true
         );
 
 
@@ -160,7 +164,8 @@ function simulateMatch(
     const awayXG =
         calculateExpectedGoals(
             awayTeam,
-            homeTeam
+            homeTeam,
+            false
         );
 
 

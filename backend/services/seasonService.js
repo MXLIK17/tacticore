@@ -1,278 +1,111 @@
-const {
-    simulateMatch
-} = require("./matchService");
+const { simulateMatch } = require("./matchService");
+const { createPlayerStats, recordGoal, getTopScorer, getTopAssister } = require("./statService");
+const premierLeagueTeams = require("../data/teams/premierLeagueTeams");
+const { calculateTeamRating } = require("./teamAdapterService");
 
+const LEAGUE_FILLER_TEAMS = [
+    "Aston Villa 1981", "Blackburn Rovers 1995", "Everton 1985", "Leeds United 1992",
+    "Nottingham Forest 1978", "West Ham United 1986", "Sheffield Wednesday 1993",
+    "Southampton 1984", "Ipswich Town 1981", "Derby County 1975", "Wolves 1959"
+].map((name, index) => ({
+    name,
+    attack: 76 + (index % 5) * 2,
+    midfield: 75 + (index % 4) * 2,
+    defense: 76 + (index % 6) * 2,
+    goalkeeper: 77 + (index % 5) * 2
+}));
 
-const {
-    createPlayerStats,
-    recordGoal,
-    getTopScorer,
-    getTopAssister
-} = require("./statService");
+function prepareTeamForSimulation(team) {
+    if (team.attack != null) return team;
+    if (!team.players || team.players.length === 0) return team;
 
-
-const premierLeagueTeams =
-    require("../data/teams/premierLeagueTeams");
-
-const {
-    calculateTeamRating
-} = require("./teamAdapterService");
-
-function prepareTeamForSimulation(myTeam) {
-    const team = myTeam.players
-        ? myTeam
-        : { players: Object.values(myTeam) };
-
-    if (team.attack != null) {
-        return team;
-    }
-
-    if (!team.players || team.players.length === 0) {
-        return team;
-    }
-
-    const slotMap = {};
-
-    team.players.forEach((player, index) => {
-        slotMap[index] = player;
-    });
-
-    const ratings = calculateTeamRating(slotMap);
-
-    return {
-        ...team,
-        attack: ratings.attack,
-        midfield: ratings.midfield,
-        defense: ratings.defense,
-        goalkeeper: ratings.goalkeeper
-    };
+    const slots = {};
+    team.players.forEach((player, index) => { slots[index] = player; });
+    const ratings = calculateTeamRating(slots);
+    return { ...team, attack: ratings.attack, midfield: ratings.midfield, defense: ratings.defense, goalkeeper: ratings.goalkeeper };
 }
 
-
-
-
-
-function convertDraftPlayers(draft){
-
-
-    return Object.values(draft)
-        .map(player => {
-
-
-            return {
-
-                name: player.name,
-
-                position: player.position || "FW"
-
-            };
-
-
-        });
-
-
+function convertDraftPlayers(players) {
+    return Object.values(players || []).map((player) => ({ name: player.name, position: player.position || "FW" }));
 }
 
+function createLeagueTeams(userTeam) {
+    const opponents = [...premierLeagueTeams, ...LEAGUE_FILLER_TEAMS];
+    return [userTeam, ...opponents].map((team, index) => ({ ...team, id: `team-${index}` }));
+}
 
+// Circle-method schedule: every pair meets once per half, then venues are reversed.
+function generateDoubleRoundRobin(teams) {
+    const rotation = [...teams];
+    const rounds = [];
+    const half = teams.length / 2;
 
+    for (let round = 0; round < teams.length - 1; round++) {
+        const fixtures = [];
+        for (let index = 0; index < half; index++) {
+            const first = rotation[index];
+            const second = rotation[rotation.length - 1 - index];
+            fixtures.push((round + index) % 2 === 0 ? { home: first, away: second } : { home: second, away: first });
+        }
+        rounds.push(fixtures);
+        rotation.splice(1, 0, rotation.pop());
+    }
 
+    return [...rounds, ...rounds.map((round) => round.map(({ home, away }) => ({ home: away, away: home }))];
+}
 
-function simulateSeason(myTeam){
+function createStandings(teams) {
+    return Object.fromEntries(teams.map((team) => [team.id, {
+        team: team.name, played: 0, wins: 0, draws: 0, losses: 0,
+        goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0
+    }]));
+}
 
+function recordResult(standings, home, away, result) {
+    const homeRow = standings[home.id];
+    const awayRow = standings[away.id];
+    homeRow.played++; awayRow.played++;
+    homeRow.goalsFor += result.homeGoals; homeRow.goalsAgainst += result.awayGoals;
+    awayRow.goalsFor += result.awayGoals; awayRow.goalsAgainst += result.homeGoals;
+
+    if (result.homeGoals > result.awayGoals) { homeRow.wins++; awayRow.losses++; homeRow.points += 3; }
+    else if (result.awayGoals > result.homeGoals) { awayRow.wins++; homeRow.losses++; awayRow.points += 3; }
+    else { homeRow.draws++; awayRow.draws++; homeRow.points++; awayRow.points++; }
+
+    homeRow.goalDifference = homeRow.goalsFor - homeRow.goalsAgainst;
+    awayRow.goalDifference = awayRow.goalsFor - awayRow.goalsAgainst;
+}
+
+function sortTable(standings) {
+    return Object.values(standings).sort((a, b) =>
+        b.points - a.points || b.goalDifference - a.goalDifference || b.goalsFor - a.goalsFor || a.team.localeCompare(b.team)
+    ).map((row, index) => ({ position: index + 1, ...row }));
+}
+
+function simulateSeason(myTeam) {
     const preparedTeam = prepareTeamForSimulation(myTeam);
-
-    let wins = 0;
-
-    let draws = 0;
-
-    let losses = 0;
-
-
-    let goalsFor = 0;
-
-    let goalsAgainst = 0;
-
-
-
+    const userPlayers = convertDraftPlayers(preparedTeam.players);
+    const userTeam = { ...preparedTeam, name: preparedTeam.name || "TactiCore XI", players: userPlayers };
+    const teams = createLeagueTeams(userTeam);
+    const standings = createStandings(teams);
+    const playerStats = createPlayerStats(userPlayers);
     const matches = [];
 
+    generateDoubleRoundRobin(teams).forEach((round) => round.forEach(({ home, away }) => {
+        const result = simulateMatch(home, away);
+        recordResult(standings, home, away, result);
 
-
-    /*
-        Create player stat database
-    */
-
-    const players =
-        convertDraftPlayers(
-            preparedTeam.players
-            ?
-            preparedTeam.players
-            :
-            preparedTeam
-        );
-
-
-
-    const playerStats =
-        createPlayerStats(
-            players
-        );
-
-
-
-    /*
-        Attach players for scorer selection
-    */
-
-    const teamWithPlayers = {
-        ...preparedTeam,
-        players
-    };
-
-
-
-
-
-    for(let i = 0; i < 38; i++){
-
-
-
-        const opponent =
-            premierLeagueTeams[
-                i %
-                premierLeagueTeams.length
-            ];
-
-
-
-        const result =
-            simulateMatch(
-                teamWithPlayers,
-                opponent
-            );
-
-
-
-        goalsFor += result.homeGoals;
-
-
-        goalsAgainst += result.awayGoals;
-
-
-
-
-
-        /*
-            Record goals
-        */
-
-
-        result.homeScorers.forEach(
-            scorer => {
-
-
-                if(scorer){
-
-                    recordGoal(
-
-                        playerStats,
-
-                        scorer.name,
-
-                        null
-
-                    );
-
-                }
-
-
-            }
-        );
-
-
-
-
-
-
-        if(result.homeGoals > result.awayGoals){
-
-
-            wins++;
-
-
+        if (home.id === "team-0" || away.id === "team-0") {
+            const userAtHome = home.id === "team-0";
+            const scorers = userAtHome ? result.homeScorers : result.awayScorers;
+            scorers.filter(Boolean).forEach((scorer) => recordGoal(playerStats, scorer.name, null));
+            matches.push({ opponent: userAtHome ? away.name : home.name, venue: userAtHome ? "Home" : "Away", score: `${userAtHome ? result.homeGoals : result.awayGoals}-${userAtHome ? result.awayGoals : result.homeGoals}`, outcome: userAtHome ? result.result : result.result === "HOME_WIN" ? "AWAY_WIN" : result.result === "AWAY_WIN" ? "HOME_WIN" : "DRAW" });
         }
+    }));
 
-        else if(
-            result.homeGoals === result.awayGoals
-        ){
-
-
-            draws++;
-
-
-        }
-
-        else{
-
-
-            losses++;
-
-
-        }
-
-
-
-
-        matches.push({
-
-            opponent:
-                opponent.name,
-
-            score:
-                `${result.homeGoals}-${result.awayGoals}`,
-
-            outcome:
-                result.result
-
-        });
-
-
-
-    }
-
-
-
-
-
-    const points =
-        wins * 3
-        +
-        draws;
-
-
-
-
-
-    return {
-        wins,
-        draws,
-        losses,
-        points,
-        goalsFor,
-        goalsAgainst,
-        topScorer: getTopScorer(playerStats),
-        topAssister: getTopAssister(playerStats)
-    };
-
-
+    const table = sortTable(standings);
+    const userRow = table.find((row) => row.team === userTeam.name);
+    return { ...userRow, wins: userRow.wins, draws: userRow.draws, losses: userRow.losses, goalsFor: userRow.goalsFor, goalsAgainst: userRow.goalsAgainst, points: userRow.points, matches, table, topScorer: getTopScorer(playerStats), topAssister: getTopAssister(playerStats) };
 }
 
-
-
-
-
-module.exports = {
-
-    simulateSeason
-
-};
+module.exports = { simulateSeason, generateDoubleRoundRobin, createStandings, recordResult, sortTable };
