@@ -1,9 +1,19 @@
+const { normalizeSlotPosition } = require("./playerResolver");
+const { normalizeTeam } = require("./teamAdapterService");
+
+function isAttacker(position) {
+    const normalized = normalizeSlotPosition(position) || position;
+    return normalized === "FW" || normalized === "ST";
+}
+
 function selectAttacker(team) {
-    const attackers = (team.players || []).filter((player) =>
-        player.position === "FW" || player.position === "ST" ||
-        player.position?.startsWith("FW") || player.position?.startsWith("ST")
-    );
-    return attackers.length ? attackers[Math.floor(Math.random() * attackers.length)] : null;
+    const attackers = (team.players || []).filter((player) => isAttacker(player.position));
+    if (attackers.length) {
+        return attackers[Math.floor(Math.random() * attackers.length)];
+    }
+
+    const fallback = (team.players || []).find((player) => player.position !== "GK");
+    return fallback || { name: `${team.name} Player`, position: "ST" };
 }
 
 function selectAssister(team, scorer) {
@@ -23,9 +33,10 @@ function calculateExpectedGoals(team, opponent, isHome = false) {
 }
 
 function generateGoals(xG) {
+    const safeXG = safeRating(xG);
     let goals = 0;
     for (let chance = 0; chance < 7; chance++) {
-        if (Math.random() < xG / 7) goals++;
+        if (Math.random() < safeXG / 7) goals++;
     }
     return goals;
 }
@@ -38,11 +49,13 @@ function createGoalEvents(team, goals) {
 }
 
 function simulateMatch(homeTeam, awayTeam, options = {}) {
+    const home = normalizeTeam(homeTeam);
+    const away = normalizeTeam(awayTeam);
     const applyHomeAdvantage = options.neutral !== true;
-    const homeGoals = generateGoals(calculateExpectedGoals(homeTeam, awayTeam, applyHomeAdvantage));
-    const awayGoals = generateGoals(calculateExpectedGoals(awayTeam, homeTeam, applyHomeAdvantage));
-    const homeEvents = createGoalEvents(homeTeam, homeGoals);
-    const awayEvents = createGoalEvents(awayTeam, awayGoals);
+    const homeGoals = generateGoals(calculateExpectedGoals(home, away, applyHomeAdvantage));
+    const awayGoals = generateGoals(calculateExpectedGoals(away, home, applyHomeAdvantage));
+    const homeEvents = createGoalEvents(home, homeGoals);
+    const awayEvents = createGoalEvents(away, awayGoals);
 
     return {
         homeGoals,
