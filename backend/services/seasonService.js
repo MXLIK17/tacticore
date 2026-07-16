@@ -110,6 +110,9 @@ function simulateSeason(myTeam) {
     const userRow = table.find((row) => row.team === userTeam.name);
     const seasonRating = userRow.points >= 90 ? "A+" : userRow.points >= 80 ? "A" : userRow.points >= 70 ? "B" : userRow.points >= 60 ? "C" : userRow.points >= 50 ? "D" : "E";
     return {
+        teamName: userTeam.name,
+        played: userRow.played,
+        position: userRow.position,
         wins: userRow.wins,
         draws: userRow.draws,
         losses: userRow.losses,
@@ -117,6 +120,8 @@ function simulateSeason(myTeam) {
         goalsAgainst: userRow.goalsAgainst,
         goalDifference: userRow.goalDifference,
         points: userRow.points,
+        table,
+        matches,
         topScorer: getTopScorer(playerStats),
         topAssister: getTopAssister(playerStats),
         seasonRating

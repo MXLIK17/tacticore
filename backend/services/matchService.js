@@ -37,9 +37,10 @@ function createGoalEvents(team, goals) {
     });
 }
 
-function simulateMatch(homeTeam, awayTeam) {
-    const homeGoals = generateGoals(calculateExpectedGoals(homeTeam, awayTeam, true));
-    const awayGoals = generateGoals(calculateExpectedGoals(awayTeam, homeTeam));
+function simulateMatch(homeTeam, awayTeam, options = {}) {
+    const applyHomeAdvantage = options.neutral !== true;
+    const homeGoals = generateGoals(calculateExpectedGoals(homeTeam, awayTeam, applyHomeAdvantage));
+    const awayGoals = generateGoals(calculateExpectedGoals(awayTeam, homeTeam, applyHomeAdvantage));
     const homeEvents = createGoalEvents(homeTeam, homeGoals);
     const awayEvents = createGoalEvents(awayTeam, awayGoals);
 

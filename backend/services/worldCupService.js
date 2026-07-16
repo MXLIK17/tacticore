@@ -113,7 +113,7 @@ function playGroupMatchday() {
         const group = worldCupState.groups[groupName];
         GROUP_ROUNDS[worldCupState.groupMatchday].forEach(([homeIndex, awayIndex]) => {
             const home = group.teams[homeIndex]; const away = group.teams[awayIndex];
-            const result = simulateMatch(home, away);
+            const result = simulateMatch(home, away, { neutral: true });
             updateGroupTable(group.table, home, away, result);
             const match = createMatchSummary(home, away, result, `Group ${groupName} · Matchday ${worldCupState.groupMatchday + 1}`);
             matches.push(match); worldCupState.history.push(match);
@@ -126,8 +126,6 @@ function playGroupMatchday() {
         });
     });
     worldCupState.groupMatchday++;
-    const userMatch = matches.find((match) => isUser(match.home) || isUser(match.away));
-    if (userMatch && userMatch.winnerId && !userWon(userMatch)) { eliminate("Defeated in the group stage"); return matches; }
     if (worldCupState.groupMatchday === 3) {
         GROUP_NAMES.forEach((name) => { worldCupState.groups[name].qualified = sortedGroup(worldCupState.groups[name].table).slice(0, 2).map(([id]) => worldCupState.groups[name].teams.find((team) => team.id === id)); });
         worldCupState.qualifiedTeams = GROUP_NAMES.flatMap((name) => worldCupState.groups[name].qualified);
@@ -139,7 +137,7 @@ function playGroupMatchday() {
 
 function playKnockoutRound(stage, pairs, nextPhase, nextRound) {
     const matches = pairs.map(([home, away]) => {
-        const result = simulateMatch(home, away);
+        const result = simulateMatch(home, away, { neutral: true });
         const match = createMatchSummary(home, away, result, stage, true);
         if (isUser(home) || isUser(away)) {
             recordUserEvents(result, isUser(home));

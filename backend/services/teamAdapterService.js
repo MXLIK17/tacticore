@@ -23,8 +23,51 @@ function average(values) {
     return validValues.reduce((total, value) => total + value, 0) / validValues.length;
 }
 
+function normalizeSlotPosition(position) {
+    if (!position) return null;
+    if (position.startsWith("CB")) return "CB";
+    if (position.startsWith("CM")) return "CM";
+    if (position.startsWith("FW")) return "FW";
+    if (position.startsWith("ST")) return "ST";
+    return position;
+}
+
 function findPlayer(name) {
-    return players.find((player) => player.name === name);
+    if (!name) return undefined;
+
+    const exact = players.find((player) => player.name === name);
+    if (exact) return exact;
+
+    const lower = name.toLowerCase();
+    return players.find((player) => {
+        const playerName = player.name.toLowerCase();
+        return playerName === lower
+            || playerName.startsWith(`${lower} `)
+            || playerName.startsWith(lower)
+            || lower.startsWith(playerName.split(" ")[0]);
+    });
+}
+
+function getFallbackRating(draftPlayer) {
+    const overall = Number.isFinite(draftPlayer?.overall) ? draftPlayer.overall : 75;
+    const position = normalizeSlotPosition(draftPlayer?.position);
+
+    switch (position) {
+        case "GK":
+            return { attack: 10, midfield: 30, defense: overall, goalkeeper: overall };
+        case "CB":
+            return { attack: 35, midfield: 60, defense: overall, goalkeeper: 0 };
+        case "LB":
+        case "RB":
+            return { attack: overall - 4, midfield: overall - 6, defense: overall, goalkeeper: 0 };
+        case "CM":
+            return { attack: overall - 5, midfield: overall, defense: overall - 10, goalkeeper: 0 };
+        case "FW":
+        case "ST":
+            return { attack: overall, midfield: overall - 8, defense: 35, goalkeeper: 0 };
+        default:
+            return { attack: overall, midfield: overall, defense: overall, goalkeeper: overall };
+    }
 }
 
 function getPlayerRating(player) {
@@ -141,9 +184,10 @@ function calculateTeamRating(draftSlots) {
         }
 
         const player = findPlayer(playerData.name);
-        const rating = getPlayerRating(player);
+        const rating = player ? getPlayerRating(player) : getFallbackRating(playerData);
+        const position = player?.position || normalizeSlotPosition(playerData?.position);
 
-        switch (player?.position) {
+        switch (position) {
             case "GK":
                 goalkeeper.push(rating.goalkeeper);
                 break;
