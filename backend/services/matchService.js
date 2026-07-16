@@ -27,17 +27,21 @@ function safeRating(value) { return Number.isFinite(value) ? value : 75; }
 function calculateExpectedGoals(team, opponent, isHome = false) {
     const attackEdge = safeRating(team.attack) - safeRating(opponent.defense);
     const midfieldEdge = safeRating(team.midfield) - safeRating(opponent.midfield);
-    const goalkeeperEffect = (safeRating(opponent.goalkeeper) - 85) * 0.025;
-    const xG = 1.18 + attackEdge * 0.045 + midfieldEdge * 0.065 + (isHome ? 0.16 : 0) - goalkeeperEffect;
-    return clamp(xG, 0.18, 3.2);
+    const defensivePressure = safeRating(opponent.attack) - safeRating(team.defense);
+    const homeAdvantage = isHome ? 0.24 : 0;
+    const xG = 1.02 + attackEdge * 0.025 + midfieldEdge * 0.018 + homeAdvantage - defensivePressure * 0.008;
+    return clamp(xG, 0.16, 2.95);
 }
 
 function generateGoals(xG) {
-    const safeXG = safeRating(xG);
+    const safeXG = clamp(safeRating(xG) + Math.random() * 0.16, 0.16, 3.2);
     let goals = 0;
-    for (let chance = 0; chance < 7; chance++) {
-        if (Math.random() < safeXG / 7) goals++;
+    const required = Math.max(1, Math.round(safeXG * 2.4));
+
+    for (let chance = 0; chance < required; chance++) {
+        if (Math.random() < safeXG / required) goals++;
     }
+
     return goals;
 }
 

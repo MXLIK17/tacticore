@@ -4,16 +4,14 @@ const {
 } = require("./playerResolver");
 const draft = require("../models/draftModel");
 
-function generatePlayer(name, position, stats) {
-    return {
+function generatePlayer(name, position, stats = {}) {
+    return resolveDraftPlayer({
         name,
         position,
-        speed: stats.speed || 70,
-        shooting: stats.shooting || 70,
-        passing: stats.passing || 70,
-        defense: stats.defense || 70,
-        stamina: stats.stamina || 70
-    };
+        overall: stats.overall ?? stats.rating ?? 75,
+        team: stats.team || "AI XI",
+        ...stats,
+    });
 }
 
 function average(values) {
@@ -40,84 +38,94 @@ function getPlayerRating(player) {
         };
     }
 
-    switch (player.position) {
+    const normalized = resolveDraftPlayer(player);
+    const position = normalizeSlotPosition(normalized.position) || "CM";
+
+    switch (position) {
         case "GK":
             return {
                 attack: 10,
                 midfield: 30,
-                defense: player.defending || 75,
-                goalkeeper: average([
-                    player.handling,
-                    player.reflexes,
-                    player.positioning,
-                    player.diving
-                ])
+                defense: safeRound(average([
+                    normalized.defending,
+                    normalized.tackling,
+                    normalized.marking,
+                    normalized.positioning,
+                    normalized.handling
+                ])),
+                goalkeeper: safeRound(average([
+                    normalized.handling,
+                    normalized.reflexes,
+                    normalized.positioning,
+                    normalized.diving
+                ]))
             };
 
         case "CB":
             return {
                 attack: 35,
                 midfield: 60,
-                defense: average([
-                    player.defending,
-                    player.tackling,
-                    player.marking,
-                    player.positioning
-                ]),
+                defense: safeRound(average([
+                    normalized.defending,
+                    normalized.tackling,
+                    normalized.marking,
+                    normalized.positioning
+                ])),
                 goalkeeper: 0
             };
 
         case "LB":
         case "RB":
             return {
-                attack: average([
-                    player.passing,
-                    player.dribbling,
-                    player.crossing || 70
-                ]),
-                midfield: average([
-                    player.passing,
-                    player.stamina || player.physical
-                ]),
-                defense: average([
-                    player.defending,
-                    player.tackling,
-                    player.marking
-                ]),
+                attack: safeRound(average([
+                    normalized.passing,
+                    normalized.dribbling,
+                    normalized.crossing || 70
+                ])),
+                midfield: safeRound(average([
+                    normalized.passing,
+                    normalized.physical,
+                    normalized.stamina || normalized.physical
+                ])),
+                defense: safeRound(average([
+                    normalized.defending,
+                    normalized.tackling,
+                    normalized.marking
+                ])),
                 goalkeeper: 0
             };
 
         case "CM":
             return {
-                attack: average([
-                    player.shooting,
-                    player.creativity,
-                    player.vision
-                ]),
-                midfield: average([
-                    player.passing,
-                    player.vision,
-                    player.creativity
-                ]),
-                defense: average([
-                    player.defending,
-                    player.tackling || 60
-                ]),
+                attack: safeRound(average([
+                    normalized.shooting,
+                    normalized.creativity,
+                    normalized.vision
+                ])),
+                midfield: safeRound(average([
+                    normalized.passing,
+                    normalized.vision,
+                    normalized.creativity
+                ])),
+                defense: safeRound(average([
+                    normalized.defending,
+                    normalized.tackling || 60
+                ])),
                 goalkeeper: 0
             };
 
         case "FW":
         case "ST":
             return {
-                attack: average([
-                    player.shooting,
-                    player.finishing,
-                    player.dribbling
-                ]),
-                midfield: average([
-                    player.passing,
-                    player.vision || 75
-                ]),
+                attack: safeRound(average([
+                    normalized.shooting,
+                    normalized.finishing,
+                    normalized.dribbling
+                ])),
+                midfield: safeRound(average([
+                    normalized.passing,
+                    normalized.vision || 75
+                ])),
                 defense: 35,
                 goalkeeper: 0
             };
@@ -160,14 +168,14 @@ function calculateTeamRating(draftSlots) {
     const defense = [];
     const goalkeeper = [];
 
-    Object.values(draftSlots).forEach((playerData) => {
-        if (!playerData?.name) {
+    Object.values(draftSlots || {}).forEach((playerData) => {
+        if (!playerData || typeof playerData !== "object" || !playerData.name) {
             return;
         }
 
         const player = resolveDraftPlayer(playerData);
         const rating = getPlayerRating(player);
-        const position = player.position || normalizeSlotPosition(playerData.position);
+        const position = normalizeSlotPosition(player.position) || normalizeSlotPosition(playerData.position) || "CM";
 
         switch (position) {
             case "GK":
@@ -195,34 +203,28 @@ function calculateTeamRating(draftSlots) {
 
     const goalkeeperValues = goalkeeper.filter(Number.isFinite);
     const goalkeeperRating = goalkeeperValues.length ? Math.max(...goalkeeperValues) : 75;
+    const attackRating = average(attack);
+    const midfieldRating = average(midfield);
+    const defenseRating = average(defense);
 
     return {
-        attack: safeRound(average(attack)),
-        midfield: safeRound(average(midfield)),
-        defense: safeRound(average(defense)),
+        attack: safeRound(attackRating),
+        midfield: safeRound(midfieldRating),
+        defense: safeRound(defenseRating),
         goalkeeper: safeRound(goalkeeperRating),
-        overall: safeRound(
-            (
-                average(attack)
-                + average(midfield)
-                + average(defense)
-                + goalkeeperRating
-            ) / 4
-        )
+        overall: safeRound((attackRating + midfieldRating + defenseRating + goalkeeperRating) / 4)
     };
 }
 
 function buildFinalTeam() {
-    const slots = draft.slots;
-    const selectedPlayers = Object.values(slots).filter(
-        (player) => player !== null && player !== undefined
-    );
-    const ratings = calculateTeamRating(slots);
+    const slots = Object.fromEntries(Object.entries(draft.slots || {}).filter(([, player]) => player && typeof player === "object"));
+    const resolvedSlots = Object.fromEntries(Object.entries(slots).map(([slot, player]) => [slot, resolveDraftPlayer(player)]));
+    const ratings = calculateTeamRating(resolvedSlots);
 
     return {
         name: "User Team",
-        slots,
-        players: selectedPlayers,
+        slots: resolvedSlots,
+        players: Object.values(resolvedSlots),
         attack: ratings.attack,
         midfield: ratings.midfield,
         defense: ratings.defense,
@@ -232,52 +234,31 @@ function buildFinalTeam() {
 }
 
 function normalizeTeam(team) {
-    if (team.players && Array.isArray(team.players)) {
+    if (team && Array.isArray(team.players)) {
+        const players = team.players
+            .filter((player) => player && typeof player === "object")
+            .map((player) => resolveDraftPlayer(player));
+
+        const resolvedRatings = players.length ? calculateTeamRating(players.reduce((accumulator, player, index) => ({ ...accumulator, [index]: player }), {})) : getFallbackRating(team);
+
         return {
             ...team,
-            attack: Number.isFinite(team.attack) ? team.attack : 75,
-            midfield: Number.isFinite(team.midfield) ? team.midfield : 75,
-            defense: Number.isFinite(team.defense) ? team.defense : 75,
-            goalkeeper: Number.isFinite(team.goalkeeper) ? team.goalkeeper : 75,
-            players: team.players.map((player) => {
-                const resolved = resolveDraftPlayer(player);
-                return {
-                    name: resolved.name,
-                    position: resolved.position,
-                    overall: resolved.overall,
-                };
-            }),
+            attack: Number.isFinite(team.attack) ? team.attack : resolvedRatings.attack,
+            midfield: Number.isFinite(team.midfield) ? team.midfield : resolvedRatings.midfield,
+            defense: Number.isFinite(team.defense) ? team.defense : resolvedRatings.defense,
+            goalkeeper: Number.isFinite(team.goalkeeper) ? team.goalkeeper : resolvedRatings.goalkeeper,
+            players,
         };
     }
 
-    if (team.attack != null) {
+    if (team && team.attack != null) {
         return {
             name: team.name,
             players: [
-                generatePlayer(`${team.name} ST`, "ST", {
-                    shooting: team.attack,
-                    speed: 80,
-                    passing: 70,
-                    defense: 40
-                }),
-                generatePlayer(`${team.name} CM`, "CM", {
-                    passing: team.midfield,
-                    speed: 75,
-                    shooting: 70,
-                    defense: 70
-                }),
-                generatePlayer(`${team.name} CB`, "CB", {
-                    defense: team.defense,
-                    speed: 70,
-                    passing: 60,
-                    shooting: 40
-                }),
-                generatePlayer(`${team.name} GK`, "GK", {
-                    defense: team.goalkeeper,
-                    speed: 50,
-                    passing: 50,
-                    shooting: 10
-                })
+                generatePlayer(`${team.name} ST`, "ST", { shooting: team.attack, speed: 80, passing: 70, defense: 40 }),
+                generatePlayer(`${team.name} CM`, "CM", { passing: team.midfield, speed: 75, shooting: 70, defense: 70 }),
+                generatePlayer(`${team.name} CB`, "CB", { defense: team.defense, speed: 70, passing: 60, shooting: 40 }),
+                generatePlayer(`${team.name} GK`, "GK", { defense: team.goalkeeper, speed: 50, passing: 50, shooting: 10 })
             ],
             attack: Number.isFinite(team.attack) ? team.attack : 75,
             midfield: Number.isFinite(team.midfield) ? team.midfield : 75,
@@ -287,7 +268,7 @@ function normalizeTeam(team) {
     }
 
     return {
-        name: team.name || "Unknown Team",
+        name: team?.name || "Unknown Team",
         players: [
             generatePlayer("AI ST", "ST", {}),
             generatePlayer("AI CM", "CM", {}),

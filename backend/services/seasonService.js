@@ -2,6 +2,7 @@ const { simulateMatch } = require("./matchService");
 const { createPlayerStats, recordGoal, getTopScorer, getTopAssister } = require("./statService");
 const premierLeagueTeams = require("../data/teams/premierLeagueTeams");
 const { calculateTeamRating } = require("./teamAdapterService");
+const { normalizeDraftPlayers } = require("./playerResolver");
 
 const LEAGUE_FILLER_TEAMS = [
     "Aston Villa 1981", "Blackburn Rovers 1995", "Everton 1985", "Leeds United 1992",
@@ -16,8 +17,10 @@ const LEAGUE_FILLER_TEAMS = [
 }));
 
 function prepareTeamForSimulation(team) {
-    if (team.attack != null) return team;
-    if (!team.players || team.players.length === 0) return team;
+    if (team && Number.isFinite(team.attack) && Number.isFinite(team.midfield) && Number.isFinite(team.defense) && Number.isFinite(team.goalkeeper)) {
+        return team;
+    }
+    if (!team?.players || team.players.length === 0) return team;
 
     const slots = {};
     team.players.forEach((player, index) => { slots[index] = player; });
@@ -26,7 +29,7 @@ function prepareTeamForSimulation(team) {
 }
 
 function convertDraftPlayers(players) {
-    return Object.values(players || []).map((player) => ({ name: player.name, position: player.position || "FW" }));
+    return normalizeDraftPlayers(players);
 }
 
 function createLeagueTeams(userTeam) {
@@ -52,14 +55,9 @@ function generateDoubleRoundRobin(teams) {
     }
 
     return [
-  ...rounds,
-  ...rounds.map((round) =>
-    round.map(({ home, away }) => ({
-      home: away,
-      away: home
-    }))
-  )
-];
+        ...rounds,
+        ...rounds.map((round) => round.map(({ home, away }) => ({ home: away, away: home })))
+    ];
 }
 
 function createStandings(teams) {
@@ -92,7 +90,7 @@ function sortTable(standings) {
 
 function simulateSeason(myTeam) {
     const preparedTeam = prepareTeamForSimulation(myTeam);
-    const userPlayers = convertDraftPlayers(preparedTeam.players);
+    const userPlayers = convertDraftPlayers(preparedTeam.players || []);
     const userTeam = { ...preparedTeam, name: preparedTeam.name || "TactiCore XI", players: userPlayers };
     const teams = createLeagueTeams(userTeam);
     const standings = createStandings(teams);

@@ -13,7 +13,7 @@ const ADDITIONAL_TEAMS = [
 ].map((name, index) => ({ name, attack: 77 + (index * 3) % 16, midfield: 76 + (index * 5) % 17, defense: 75 + (index * 7) % 18, goalkeeper: 77 + (index * 2) % 15, players: [] }));
 
 function prepareTeamForSimulation(team) {
-    if (team.attack != null) return team;
+    if (team && Number.isFinite(team.attack) && Number.isFinite(team.midfield) && Number.isFinite(team.defense) && Number.isFinite(team.goalkeeper)) return team;
     const slots = {};
     (team.players || []).forEach((player, index) => { slots[index] = player; });
     const ratings = calculateTeamRating(slots);
@@ -48,7 +48,12 @@ function recordUserEvents(result, userAtHome) {
 
 function createMatchSummary(home, away, result, stage, knockout = false) {
     const draw = result.homeGoals === result.awayGoals;
-    const winner = knockout ? (draw ? (Math.random() < 0.5 ? home : away) : result.homeGoals > result.awayGoals ? home : away) : result.homeGoals > result.awayGoals ? home : result.awayGoals > result.homeGoals ? away : null;
+    let winner = null;
+    if (knockout) {
+        winner = draw ? (Math.random() < 0.5 ? home : away) : result.homeGoals > result.awayGoals ? home : away;
+    } else {
+        winner = result.homeGoals > result.awayGoals ? home : result.awayGoals > result.homeGoals ? away : null;
+    }
     return { stage, teamA: home.name, teamB: away.name, score: `${result.homeGoals}-${result.awayGoals}`, winner: winner?.name || "Draw", winnerId: winner?.id || null, penalties: knockout && draw, home, away, winner };
 }
 
@@ -90,8 +95,6 @@ function buildRoundOf16(groups) {
 function eliminate(reason) {
     worldCupState.eliminated = true;
     worldCupState.eliminationReason = reason;
-    worldCupState.finished = true;
-    worldCupState.phase = "eliminated";
 }
 
 function isUser(team) { return team.id === worldCupState.userTeam.id; }
@@ -129,7 +132,7 @@ function playGroupMatchday() {
     if (worldCupState.groupMatchday === 3) {
         GROUP_NAMES.forEach((name) => { worldCupState.groups[name].qualified = sortedGroup(worldCupState.groups[name].table).slice(0, 2).map(([id]) => worldCupState.groups[name].teams.find((team) => team.id === id)); });
         worldCupState.qualifiedTeams = GROUP_NAMES.flatMap((name) => worldCupState.groups[name].qualified);
-        if (!worldCupState.qualifiedTeams.some(isUser)) { eliminate("Failed to qualify from the group stage"); return matches; }
+        if (!worldCupState.qualifiedTeams.some(isUser)) { eliminate("Failed to qualify from the group stage"); }
         worldCupState.knockoutPairs = buildRoundOf16(worldCupState.groups); worldCupState.phase = "roundOf16"; worldCupState.currentRound = 1;
     }
     return matches;
@@ -148,8 +151,25 @@ function playKnockoutRound(stage, pairs, nextPhase, nextRound) {
     });
     worldCupState.history.push(...matches); worldCupState.bracket.push(...matches);
     const userMatch = matches.find((match) => isUser(match.home) || isUser(match.away));
-    if (userMatch && !userWon(userMatch)) { eliminate(`Eliminated in the ${stage.toLowerCase()}`); return matches; }
-    worldCupState.knockoutPairs = matches.map((match) => match.winner);
+    if (userMatch && !userWon(userMatch)) {
+        worldCupState.eliminated = true;
+        worldCupState.eliminationReason = `Eliminated in the ${stage.toLowerCase()}`;
+    }
+    const winners = matches.map((match) => match.winner).filter(Boolean);
+    worldCupState.knockoutPairs = [];
+    for (let index = 0; index < winners.length; index += 2) {
+        if (winners[index] && winners[index + 1]) {
+            worldCupState.knockoutPairs.push([winners[index], winners[index + 1]]);
+        }
+    }
+    if (stage === "Final") {
+        const champion = matches[0]?.winner || matches[0]?.home || null;
+        worldCupState.champion = champion?.name || null;
+        worldCupState.finished = true;
+        worldCupState.phase = "completed";
+        worldCupState.currentRound = 6;
+        return matches;
+    }
     worldCupState.phase = nextPhase; worldCupState.currentRound = nextRound;
     return matches;
 }
@@ -161,24 +181,19 @@ function playNextWorldCupMatch() {
     if (worldCupState.phase === "group") latestMatches = playGroupMatchday();
     else if (worldCupState.phase === "roundOf16") {
         latestMatches = playKnockoutRound("Round of 16", worldCupState.knockoutPairs, "quarterFinal", 2);
-        if (!worldCupState.finished) worldCupState.knockoutPairs = [[worldCupState.knockoutPairs[0], worldCupState.knockoutPairs[1]], [worldCupState.knockoutPairs[2], worldCupState.knockoutPairs[3]], [worldCupState.knockoutPairs[4], worldCupState.knockoutPairs[5]], [worldCupState.knockoutPairs[6], worldCupState.knockoutPairs[7]]];
     } else if (worldCupState.phase === "quarterFinal") {
         latestMatches = playKnockoutRound("Quarter-finals", worldCupState.knockoutPairs, "semiFinal", 3);
-        if (!worldCupState.finished) worldCupState.knockoutPairs = [[worldCupState.knockoutPairs[0], worldCupState.knockoutPairs[1]], [worldCupState.knockoutPairs[2], worldCupState.knockoutPairs[3]]];
     } else if (worldCupState.phase === "semiFinal") {
         latestMatches = playKnockoutRound("Semi-finals", worldCupState.knockoutPairs, "thirdPlace", 4);
         if (!worldCupState.finished) {
-            const semiMatches = latestMatches;
-            worldCupState.thirdPlaceTeams = semiMatches.map((match) => match.winner.id === match.home.id ? match.away : match.home);
-            worldCupState.finalists = worldCupState.knockoutPairs;
+            worldCupState.thirdPlaceTeams = latestMatches.map((match) => match.winner.id === match.home.id ? match.away : match.home);
+            worldCupState.finalists = latestMatches.map((match) => match.winner);
         }
     } else if (worldCupState.phase === "thirdPlace") {
-        const thirdPlace = playKnockoutRound("Third-place match", [worldCupState.thirdPlaceTeams], "final", 5);
-        latestMatches = thirdPlace;
+        latestMatches = playKnockoutRound("Third-place match", [worldCupState.thirdPlaceTeams], "final", 5);
         worldCupState.knockoutPairs = [worldCupState.finalists];
     } else {
         latestMatches = playKnockoutRound("Final", worldCupState.knockoutPairs, "completed", 6);
-        if (!worldCupState.finished) { worldCupState.champion = latestMatches[0].winner.name; worldCupState.finished = true; worldCupState.phase = "completed"; }
     }
     return response(latestMatches);
 }
