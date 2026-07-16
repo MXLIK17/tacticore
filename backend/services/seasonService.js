@@ -51,7 +51,15 @@ function generateDoubleRoundRobin(teams) {
         rotation.splice(1, 0, rotation.pop());
     }
 
-    return [...rounds, ...rounds.map((round) => round.map(({ home, away }) => ({ home: away, away: home }))];
+    return [
+  ...rounds,
+  ...rounds.map((round) =>
+    round.map(({ home, away }) => ({
+      home: away,
+      away: home
+    }))
+  )
+];
 }
 
 function createStandings(teams) {
