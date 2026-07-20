@@ -31,6 +31,9 @@ async function request(path, options = {}) {
   }
 
   const normalizedPayload = unwrapPayload(payload);
+  // #region agent log
+  fetch('http://127.0.0.1:7848/ingest/aac2d5c6-87a7-429e-9f99-f1df9e70d234',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'c1a092'},body:JSON.stringify({sessionId:'c1a092',runId:'pre-fix',hypothesisId:'A',location:'api.js:request',message:'api payload unwrap',data:{path,rawKeys:payload&&typeof payload==='object'?Object.keys(payload):[],dataKeys:payload?.data&&typeof payload.data==='object'&&!Array.isArray(payload.data)?Object.keys(payload.data):[],rawDataStats:{wins:payload?.data?.wins,draws:payload?.data?.draws,losses:payload?.data?.losses,userRecord:payload?.data?.userRecord},nestedResultKeys:payload?.data?.result&&typeof payload.data.result==='object'?Object.keys(payload.data.result):[],nestedSeasonResultKeys:payload?.data?.seasonResult&&typeof payload.data.seasonResult==='object'?Object.keys(payload.data.seasonResult):[],unwrappedKeys:normalizedPayload&&typeof normalizedPayload==='object'&&!Array.isArray(normalizedPayload)?Object.keys(normalizedPayload):[],unwrappedStats:{wins:normalizedPayload?.wins,draws:normalizedPayload?.draws,losses:normalizedPayload?.losses,userRecord:normalizedPayload?.userRecord},unwrappedTypes:{wins:typeof normalizedPayload?.wins,draws:typeof normalizedPayload?.draws,losses:typeof normalizedPayload?.losses}},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   if (!response.ok || payload.success === false) {
     throw new Error(payload.message || "Something went wrong. Please try again.");
   }
