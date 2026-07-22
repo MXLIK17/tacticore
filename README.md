@@ -52,6 +52,14 @@ The goal of TactiCore is to combine football history, tactical decision-making, 
 - Express.js
 - REST API architecture
 
+## Deployment
+
+Frontend:
+- Vercel
+
+Backend:
+- Render
+
 ### Database / Data Storage
 - JSON-based historical player and team datasets
 - Structured data models for:
