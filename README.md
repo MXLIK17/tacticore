@@ -52,13 +52,28 @@ The goal of TactiCore is to combine football history, tactical decision-making, 
 - Express.js
 - REST API architecture
 
-## Deployment
+### Deployment
 
 Frontend:
-- Vercel
+- The React frontend is deployed using **Vercel**.
+
+Vercel automatically handles:
+
+- Building the React application.
+- Hosting static files.
+- Providing a public HTTPS URL.
 
 Backend:
-- Render
+- The Node.js backend is deployed using **Render**.
+
+The backend server:
+
+- Hosts REST API endpoints.
+- Handles player data.
+- Processes draft logic.
+- Runs competition simulations.
+
+The frontend communicates with the deployed backend through environment configuration.
 
 ### Database / Data Storage
 - JSON-based historical player and team datasets
